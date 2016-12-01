@@ -1,0 +1,34 @@
+log_file = ""
+log_level = "DEBUG"
+timeout = 10
+retries = 3
+user_agent = "HLS-SYNC"
+timestamp_type="program"
+timestamp_format=""
+timezone_shift=0
+target_duration=5
+program_time_format=""
+[source]
+urls=[]
+
+[sync]
+enabled=true
+output="./"
+remove_old=true
+
+[record]
+enabled=true
+output="."
+segment_rewrite="%Y/%m/%d/%H/live-#:04.ts"
+reindex=true
+reindex_by="hour"
+reindex_format="%Y/%m/%d/%H/index.m3u8"
+
+[http]
+enabled=true
+listen="unix://./hlssync.sock"
+days=7
+max=4
+# listen="tcp://0.0.0.0:8080"
+
+
