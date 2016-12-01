@@ -25,7 +25,7 @@ import (
 	"time"
 )
 
-const VERSION = "0.9.10"
+const VERSION = "0.9.11"
 
 var logging_config = LoggingConfig{Format:DEFAULT_FORMAT, Level:"DEBUG"}
 
@@ -80,7 +80,9 @@ func main() {
 	//Index_Name string
 	flag.StringVar(&option.Sync.Index_Name, "OI", "live.m3u8", "Index playlist filename.")
 	//Remove_Old bool
-	flag.BoolVar(&option.Sync.Remove_Old, "RM", true, "Remove old segments.")
+	flag.BoolVar(&option.Sync.Remove_Old, "RM", false, "Remove old segments.")
+	//Clean_Folder bool
+	flag.BoolVar(&option.Sync.Clean_Folder, "CF", false, "Clean target output folder.")
 	// Record Arguments ================================================================================================
 	//Enabled bool
 	flag.BoolVar(&option.Record.Enabled, "RC", false, "Record enabled.")

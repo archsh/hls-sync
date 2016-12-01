@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"io"
 	"github.com/golang/groupcache/lru"
+	"io/ioutil"
 )
 
 type SyncType uint8
@@ -39,6 +40,25 @@ func (self *Synchronizer) syncProc(msgChan chan *SyncMessage) {
 				log.Errorf("Delete file '%s' failed:> %s \n", fname, err)
 			}else{
 				log.Infof("Removed synced segment:> %s \n", fname)
+			}
+		}
+	}
+	if self.option.Sync.Clean_Folder && self.option.Sync.Output != "" && self.option.Sync.Output != "." && self.option.Sync.Output != "/"{
+		// Clean target folder first.
+		if filenames, e := ioutil.ReadDir(self.option.Sync.Output); nil != e {
+			log.Errorf("Failed to open folder '%s' :> %s \n", self.option.Sync.Output, e)
+		}else{
+			for _, finfo := range filenames {
+				if finfo.IsDir() {
+					continue
+				}
+				fname := filepath.Join(self.option.Sync.Output, finfo.Name())
+				e := os.Remove(fname)
+				if e != nil {
+					log.Errorf("Clear file '%s' failed:> %s\n", fname, e)
+				}else{
+					log.Debugf("Cleared file '%s' ! \n", fname)
+				}
 			}
 		}
 	}

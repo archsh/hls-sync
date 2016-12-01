@@ -15,6 +15,7 @@ type SyncOption struct {
 	Output      string
 	Index_Name  string
 	Remove_Old  bool
+	Clean_Folder bool
 }
 
 
@@ -94,6 +95,7 @@ func CheckConfiguration(option *Option, output io.Writer) {
 	_print(fmt.Sprintf("Output: %s\n", option.Sync.Output))
 	_print(fmt.Sprintf("Index_Name: %s\n", option.Sync.Index_Name))
 	_print(fmt.Sprintf("Remove_Old: %t\n", option.Sync.Remove_Old))
+	_print(fmt.Sprintf("Clean_Folder: %t\n", option.Sync.Clean_Folder))
 
 	_print("\nRecord Options:\n")
 	_print(fmt.Sprintf("Enabled: %t\n", option.Record.Enabled))
