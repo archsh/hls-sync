@@ -19,7 +19,6 @@
 package main
 
 import (
-	"github.com/archsh/hlsutils/helpers/logging"
 	"os"
 	"flag"
 	"fmt"
@@ -28,7 +27,7 @@ import (
 
 const VERSION = "0.9.10"
 
-var logging_config = logging.LoggingConfig{Format:logging.DEFAULT_FORMAT, Level:"DEBUG"}
+var logging_config = LoggingConfig{Format:DEFAULT_FORMAT, Level:"DEBUG"}
 
 func Usage() {
 	guide := `
@@ -158,11 +157,11 @@ func main() {
 	logging_config.Filename = option.Log_File
 	logging_config.Level = option.Log_Level
 	if option.Log_File != "" {
-		logging.InitializeLogging(&logging_config, false, logging_config.Level)
+		InitializeLogging(&logging_config, false, logging_config.Level)
 	}else{
-		logging.InitializeLogging(&logging_config, true, logging_config.Level)
+		InitializeLogging(&logging_config, true, logging_config.Level)
 	}
-	defer logging.DeinitializeLogging()
+	defer DeinitializeLogging()
 
 	if sync, e := NewSynchronizer(&option); e != nil {
 		os.Stderr.Write([]byte(fmt.Sprintf("Start failed: %s.\n", e)))
