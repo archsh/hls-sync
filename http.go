@@ -35,6 +35,13 @@ func (self *Synchronizer) HttpServe() {
 		log.Errorf("Invalid listen option:> '%s', should use like 'tcp://0.0.0.0:8080' or 'unix:///var/run/test.sock'.", self.option.Http.Listen)
 		return
 	}
+	if ls[0] == "unix" {
+		if e := os.Remove(ls[1]); nil != e {
+			log.Errorf("Remove previous sock file '%s' failed:> %s \n", ls[1], e)
+		}else{
+			log.Debugf("Removed previous sock file '%s'.\n", ls[1])
+		}
+	}
 	ln, err := net.Listen(ls[0], ls[1])
 	if nil != err {
 		log.Errorln("Listen to socket failed:> ", err)
