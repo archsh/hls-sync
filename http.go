@@ -132,7 +132,7 @@ func (self *Synchronizer) ServeHTTP(response http.ResponseWriter, request *http.
 		}
 	}
 	if mpl, e := self.buildPlaylist(_start_time, _end_time); e != nil {
-		log.Debugf("Build playlist failed:> %s", e)
+		log.Errorf("Build playlist failed:> %s \n", e)
 		response.WriteHeader(500)
 		response.Header().Set("Content-Type", "text/plain")
 		response.Write([]byte(fmt.Sprintf("Build playlist failed:> %s", e)))

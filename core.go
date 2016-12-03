@@ -44,6 +44,11 @@ func NewSynchronizer(option *Option) (s *Synchronizer, e error) {
 	s.client = &http.Client{}
 	if s.program_timezone, e = time.LoadLocation(option.Program_Timezone); nil != e {
 		return nil, e
+	}else{
+		m3u8.ProgramTimeLocation = s.program_timezone
+	}
+	if option.Program_Time_Format != "" {
+		m3u8.ProgramTimeFormat = option.Program_Time_Format
 	}
 	return s, nil
 }
@@ -53,8 +58,8 @@ func (self *Synchronizer) Run() {
 	syncChan := make(chan *SyncMessage, 20)
 	recordChan := make(chan *RecordMessage, 20)
 	segmentChan := make(chan *SegmentMessage, 20)
-	m3u8.ProgramTimeFormat = self.option.Program_Time_Format
-	m3u8.ProgramTimeLocation = self.program_timezone
+	//m3u8.ProgramTimeFormat = self.option.Program_Time_Format
+	//m3u8.ProgramTimeLocation = self.program_timezone
 	if self.option.Http.Enabled {
 		if !self.option.Record.Enabled || !self.option.Record.Reindex {
 			os.Stderr.Write([]byte("\n\n!!! Record(-RC) and Re-index(-RI) should enabled to enable HTTP service !\n"))
