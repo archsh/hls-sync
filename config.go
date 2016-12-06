@@ -6,7 +6,7 @@ package main
 import (
 	"github.com/BurntSushi/toml"
 	"io"
-	"fmt"
+	//"fmt"
 )
 
 type SyncOption struct {
@@ -80,42 +80,43 @@ func CheckConfiguration(option *Option, output io.Writer) {
 		return
 	}
 	_print("\n")
-	_print(fmt.Sprintf("Log_File: %s\n", option.Log_File))
-	_print(fmt.Sprintf("Log_Level: %s\n", option.Log_Level))
-	_print(fmt.Sprintf("Timeout: %d\n", option.Timeout))
-	_print(fmt.Sprintf("Retries: %d\n", option.Retries))
-	_print(fmt.Sprintf("User_Agent: %s\n", option.User_Agent))
-	_print(fmt.Sprintf("Max_Segments: %d\n", option.Max_Segments))
-	_print(fmt.Sprintf("Timestamp_type: %s\n", option.Timestamp_type))
-	_print(fmt.Sprintf("Timestamp_Format: %s\n", option.Timestamp_Format))
-	_print(fmt.Sprintf("Timezone_shift: %d\n", option.Timezone_shift))
-	_print(fmt.Sprintf("Target_Duration: %d\n", option.Target_Duration))
-	_print(fmt.Sprintf("Program_Time_Format: %s\n", option.Program_Time_Format))
-	_print(fmt.Sprintf("Program_Timezone: %s\n", option.Program_Timezone))
-
-	_print("\nSync Options:\n")
-	_print(fmt.Sprintf("  Enabled: %t\n", option.Sync.Enabled))
-	_print(fmt.Sprintf("  Output: %s\n", option.Sync.Output))
-	_print(fmt.Sprintf("  Index_Name: %s\n", option.Sync.Index_Name))
-	_print(fmt.Sprintf("  Remove_Old: %t\n", option.Sync.Remove_Old))
-	_print(fmt.Sprintf("  Clean_Folder: %t\n", option.Sync.Clean_Folder))
-
-	_print("\nRecord Options:\n")
-	_print(fmt.Sprintf("  Enabled: %t\n", option.Record.Enabled))
-	_print(fmt.Sprintf("  Output: %s\n", option.Record.Output))
-	_print(fmt.Sprintf("  Segment_Rewrite: %s\n", option.Record.Segment_Rewrite))
-	_print(fmt.Sprintf("  Reindex: %t\n", option.Record.Reindex))
-	_print(fmt.Sprintf("  Reindex_By: %s\n", option.Record.Reindex_By))
-	_print(fmt.Sprintf("  Reindex_Format: %s\n", option.Record.Reindex_Format))
-
-	_print("\nHTTP Options:\n")
-	_print(fmt.Sprintf("  Enabled: %t\n", option.Http.Enabled))
-	_print(fmt.Sprintf("  Listen: %s\n", option.Http.Listen))
-	_print(fmt.Sprintf("  Days: %d\n", option.Http.Days))
-	_print(fmt.Sprintf("  Max: %d\n", option.Http.Max))
-	_print(fmt.Sprintf("  Segment_Prefix: %s\n", option.Http.Segment_Prefix))
-	_print(fmt.Sprintf("  Cache_Num: %d\n", option.Http.Cache_Num))
-	_print(fmt.Sprintf("  Cache_Valid: %d\n", option.Http.Cache_Valid))
+	toml.NewEncoder(output).Encode(option)
+	//_print(fmt.Sprintf("Log_File: %s\n", option.Log_File))
+	//_print(fmt.Sprintf("Log_Level: %s\n", option.Log_Level))
+	//_print(fmt.Sprintf("Timeout: %d\n", option.Timeout))
+	//_print(fmt.Sprintf("Retries: %d\n", option.Retries))
+	//_print(fmt.Sprintf("User_Agent: %s\n", option.User_Agent))
+	//_print(fmt.Sprintf("Max_Segments: %d\n", option.Max_Segments))
+	//_print(fmt.Sprintf("Timestamp_type: %s\n", option.Timestamp_type))
+	//_print(fmt.Sprintf("Timestamp_Format: %s\n", option.Timestamp_Format))
+	//_print(fmt.Sprintf("Timezone_shift: %d\n", option.Timezone_shift))
+	//_print(fmt.Sprintf("Target_Duration: %d\n", option.Target_Duration))
+	//_print(fmt.Sprintf("Program_Time_Format: %s\n", option.Program_Time_Format))
+	//_print(fmt.Sprintf("Program_Timezone: %s\n", option.Program_Timezone))
+	//
+	//_print("\nSync Options:\n")
+	//_print(fmt.Sprintf("  Enabled: %t\n", option.Sync.Enabled))
+	//_print(fmt.Sprintf("  Output: %s\n", option.Sync.Output))
+	//_print(fmt.Sprintf("  Index_Name: %s\n", option.Sync.Index_Name))
+	//_print(fmt.Sprintf("  Remove_Old: %t\n", option.Sync.Remove_Old))
+	//_print(fmt.Sprintf("  Clean_Folder: %t\n", option.Sync.Clean_Folder))
+	//
+	//_print("\nRecord Options:\n")
+	//_print(fmt.Sprintf("  Enabled: %t\n", option.Record.Enabled))
+	//_print(fmt.Sprintf("  Output: %s\n", option.Record.Output))
+	//_print(fmt.Sprintf("  Segment_Rewrite: %s\n", option.Record.Segment_Rewrite))
+	//_print(fmt.Sprintf("  Reindex: %t\n", option.Record.Reindex))
+	//_print(fmt.Sprintf("  Reindex_By: %s\n", option.Record.Reindex_By))
+	//_print(fmt.Sprintf("  Reindex_Format: %s\n", option.Record.Reindex_Format))
+	//
+	//_print("\nHTTP Options:\n")
+	//_print(fmt.Sprintf("  Enabled: %t\n", option.Http.Enabled))
+	//_print(fmt.Sprintf("  Listen: %s\n", option.Http.Listen))
+	//_print(fmt.Sprintf("  Days: %d\n", option.Http.Days))
+	//_print(fmt.Sprintf("  Max: %d\n", option.Http.Max))
+	//_print(fmt.Sprintf("  Segment_Prefix: %s\n", option.Http.Segment_Prefix))
+	//_print(fmt.Sprintf("  Cache_Num: %d\n", option.Http.Cache_Num))
+	//_print(fmt.Sprintf("  Cache_Valid: %d\n", option.Http.Cache_Valid))
 	_print("\n")
 	_print("Configration validated!\n")
 }
