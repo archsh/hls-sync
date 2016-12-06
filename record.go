@@ -99,7 +99,13 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
 					}
 				}
 				log.Debugf("Set Timeshift playlist winsize to : %d \n", max_timeshift_segs)
-				timeshift_playlist.SetWinSize(max_timeshift_segs)
+				//timeshift_playlist
+				if e = timeshift_playlist.SetCapacity(max_timeshift_segs); nil != e {
+					log.Errorf("SetCapacity to %d failed:> %s\n", max_timeshift_segs, e)
+				}
+				if e = timeshift_playlist.SetWinSize(max_timeshift_segs); nil != e {
+					log.Errorf("SetWinSize to %d failed:> %s\n", max_timeshift_segs, e)
+				}
 			}
 		}
 		if nil == index_playlist {
@@ -220,8 +226,12 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
 				Title: msg.segment.URI,
 				SeqId: index,
 			}
-			index_playlist.AppendSegment(&seg)
-			self.saveIndexPlaylist(index_playlist)
+			if e := index_playlist.AppendSegment(&seg); nil == e {
+				self.saveIndexPlaylist(index_playlist)
+			}else{
+				log.Errorf("Append to index playlist failed:> %s \n", e)
+			}
+
 		}
 		if self.option.Record.Timeshifting {
 			if relpath, e := filepath.Rel(self.option.Record.Output, fname); nil == e {
@@ -237,8 +247,12 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
 						log.Errorln("Remove segment from timeshift playlist failed:>", e)
 					}
 				}
-				timeshift_playlist.AppendSegment(&seg)
-				self.saveTimeshiftPlaylist(timeshift_playlist)
+				if e := timeshift_playlist.AppendSegment(&seg); nil == e {
+					self.saveTimeshiftPlaylist(timeshift_playlist)
+				}else{
+					log.Errorf("Append to timeshift playlist failed:> %s \n", e)
+				}
+
 			}else{
 				log.Errorf("Get relative path of '%s' failed:> %s \n", fname, e)
 			}
@@ -273,7 +287,7 @@ func (self *Synchronizer) saveTimeshiftPlaylist(playlist *m3u8.MediaPlaylist) {
 	}else{
 		log.Debugf("Write timeshift file '%s' bytes:> %d \n", fname, n)
 	}
-	log.Infof("Updated timeshift playlist:> %s \n", fname)
+	log.Infof("Updated timeshift playlist:> %s : %d \n", fname, playlist.Count())
 }
 
 func (self *Synchronizer) saveIndexPlaylist(playlist *m3u8.MediaPlaylist) {
