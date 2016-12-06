@@ -265,7 +265,7 @@ func (self *Synchronizer) saveTimeshiftPlaylist(playlist *m3u8.MediaPlaylist) {
 	}
 	defer out.Close()
 	//playlist.SetWinSize(playlist.Count())
-	//playlist.Close()
+	playlist.Close()
 	buf := playlist.Encode()
 	n, e := io.Copy(out, buf)
 	if nil != e {
