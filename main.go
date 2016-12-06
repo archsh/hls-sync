@@ -25,7 +25,7 @@ import (
 	"time"
 )
 
-const VERSION = "0.9.13"
+const VERSION = "0.9.14"
 
 var logging_config = LoggingConfig{Format:DEFAULT_FORMAT, Level:"DEBUG"}
 
@@ -96,13 +96,19 @@ func main() {
 	flag.StringVar(&option.Record.Reindex_Format, "RF", "%Y/%m/%d/%H/index.m3u8", "Re-index M3U8 filename format.")
 	//Reindex_By string // hour/minute
 	flag.StringVar(&option.Record.Reindex_By, "RB", "hour", "Re-index by 'hour' or 'minute'.")
+	//Timeshifting bool
+	flag.BoolVar(&option.Record.Timeshifting, "ST", false, "Enable timeshifting playlist.")
+	//Timeshift_filename string
+	flag.StringVar(&option.Record.Timeshift_filename, "SF", "timeshift.m3u8", "Timeshifting playlist filename.")
+	//Timeshift_duration int
+	flag.IntVar(&option.Record.Timeshift_duration, "SH", 3, "Timeshift duation in hour(s).")
 	// HTTP Service Arguments ==========================================================================================
 	// Enabled bool
-	flag.BoolVar(&option.Http.Enabled, "H", false, "Enable HTTP service for time shifting playlist.")
+	flag.BoolVar(&option.Http.Enabled, "H", false, "Enable HTTP service for playback playlist.")
 	// Listen string
 	flag.StringVar(&option.Http.Listen, "LS", "unix://./hls-sync.sock", "HTTP listening address. support tcp:// or unix://")
 	// Days int
-	flag.IntVar(&option.Http.Days, "SD", 7, "Max time shifting days for playlist.")
+	flag.IntVar(&option.Http.Days, "SD", 7, "Max time playback days for playlist.")
 	// Max int
 	flag.IntVar(&option.Http.Max, "MX", 6, "Max length of playlist in hours.")
 	// Segment_Prefix string

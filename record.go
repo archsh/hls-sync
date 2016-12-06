@@ -49,15 +49,12 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
 	}
 	log.Debugln("Index By:", index_by)
 	var index uint64 = 0
-	var index_playlist *m3u8.MediaPlaylist
+	var index_playlist, timeshift_playlist *m3u8.MediaPlaylist
 	var e error
-	//index_playlist, e := m3u8.NewMediaPlaylist(2048, 2048)
-	//if nil != e {
-	//	log.Errorln("Create playlist failed:>", e)
-	//}
 	last_seg_timestamp := time.Time{}
 	var last_seg_duration time.Duration = 0
 	_target_duration := 0
+	var max_timeshift_segs uint = 0
 	for msg := range msgChan {
 		if nil == msg {
 			continue
@@ -70,17 +67,52 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
 				_target_duration = self.option.Target_Duration
 			}
 		}
+		if self.option.Record.Timeshifting {
+			if timeshift_playlist == nil {
+				fname := filepath.Join(self.option.Record.Output, self.option.Record.Timeshift_filename)
+				max_timeshift_segs = uint((time.Duration(self.option.Record.Timeshift_duration) * time.Hour) / (time.Second * time.Duration(_target_duration)))
+				if ! exists(fname) {
+					timeshift_playlist, e = m3u8.NewMediaPlaylist(max_timeshift_segs, max_timeshift_segs)
+					if e != nil {
+						log.Errorf("Create playlist '%s' for timeshifting failed:> %s \n", fname, e)
+					}
+				}else{
+					// READ playlist.
+					if f, e := os.Open(fname); e != nil {
+						log.Errorf("Read timeshift playlist '%s' failed:> %s \n", fname, e)
+					}else{
+						if playlist, listType, err := m3u8.DecodeFrom(f, true); nil != err {
+							log.Errorln("Decode previous index playlist '%s' failed:> %s\n", fname, err)
+						}else{
+							if listType == m3u8.MEDIA {
+								timeshift_playlist = playlist.(*m3u8.MediaPlaylist)
+								for _, v := range timeshift_playlist.Segments {
+									if v != nil {
+										last_seg_timestamp = v.ProgramDateTime
+									}
+								}
+							}else{
+								log.Warningf("Previous timeshift playlist file '%s' is not a MediaPlaylist ???\n", fname)
+							}
+						}
+						f.Close()
+					}
+				}
+				log.Debugf("Set Timeshift playlist winsize to : %d \n", max_timeshift_segs)
+				timeshift_playlist.SetWinSize(max_timeshift_segs)
+			}
+		}
 		if nil == index_playlist {
 			fname, e := self.generateFilename(self.option.Record.Output, self.option.Record.Reindex_Format, segtime, 0)
 			if nil != e {
-				log.Errorln("Generate index playlist filename failed:> ", e)
+				log.Errorf("Generate index playlist '%s' failed:> %s\n", fname, e)
 			}else if fname != "" && exists(fname){
 				// READ playlist.
 				if f, e := os.Open(fname); e != nil {
-					log.Errorln("Read previous index playlist filename failed:> ", e)
+					log.Errorf("Read previous index playlist '%s' failed:> %s\n", fname, e)
 				}else{
 					if playlist, listType, err := m3u8.DecodeFrom(f, true); nil != err {
-						log.Errorln("Decode previous index playlist filename failed:> ", err)
+						log.Errorf("Decode previous index playlist '%s' failed:> %s\n", fname, err)
 					}else{
 						if listType == m3u8.MEDIA {
 							index_playlist = playlist.(*m3u8.MediaPlaylist)
@@ -95,7 +127,7 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
 								}
 							}
 						}else{
-							log.Warningln("Previous index playlist file is not a MediaPlaylist ???")
+							log.Warningf("Previous index playlist file '%s' is not a MediaPlaylist ???\n", fname)
 						}
 					}
 					f.Close()
@@ -191,7 +223,57 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
 			index_playlist.AppendSegment(&seg)
 			self.saveIndexPlaylist(index_playlist)
 		}
+		if self.option.Record.Timeshifting {
+			if relpath, e := filepath.Rel(self.option.Record.Output, fname); nil == e {
+				seg := m3u8.MediaSegment{
+					URI: filepath.ToSlash(relpath),
+					Duration: msg.segment.Duration,
+					ProgramDateTime: msg.segment.ProgramDateTime,
+					Title: msg.segment.URI,
+					SeqId: index,
+				}
+				if timeshift_playlist.Count() >= max_timeshift_segs {
+					if e:= timeshift_playlist.Remove(); nil != e {
+						log.Errorln("Remove segment from timeshift playlist failed:>", e)
+					}
+				}
+				timeshift_playlist.AppendSegment(&seg)
+				self.saveTimeshiftPlaylist(timeshift_playlist)
+			}else{
+				log.Errorf("Get relative path of '%s' failed:> %s \n", fname, e)
+			}
+		}
 	}
+}
+
+func (self *Synchronizer) saveTimeshiftPlaylist(playlist *m3u8.MediaPlaylist) {
+	if nil == playlist || nil == playlist.Segments[0] {
+		log.Errorln("Empty playlist !")
+		return
+	}
+	fname := filepath.Join(self.option.Record.Output, self.option.Record.Timeshift_filename)
+	log.Debugf("Updating timeshift playlist file:> %s : %d \n", fname, playlist.Count())
+	e := os.MkdirAll(filepath.Dir(fname), 0777)
+	if e != nil {
+		log.Errorf("Create directory '%s' failed:> %s \n", filepath.Dir(fname), e)
+		return
+	}
+	out, err := os.Create(fname)
+	if err != nil {
+		log.Errorf("Create timeshift file '%s' failed:>  %s \n", fname, err)
+		return
+	}
+	defer out.Close()
+	//playlist.SetWinSize(playlist.Count())
+	//playlist.Close()
+	buf := playlist.Encode()
+	n, e := io.Copy(out, buf)
+	if nil != e {
+		log.Errorf("Write timeshift file '%s' failed:> %s \n", fname, e)
+	}else{
+		log.Debugf("Write timeshift file '%s' bytes:> %d \n", fname, n)
+	}
+	log.Infof("Updated timeshift playlist:> %s \n", fname)
 }
 
 func (self *Synchronizer) saveIndexPlaylist(playlist *m3u8.MediaPlaylist) {

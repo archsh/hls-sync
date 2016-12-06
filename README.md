@@ -73,16 +73,22 @@ You can run with several URL as failover mechanism. `hls-sync` the first one and
         Segment filename rewrite rule. Default empty means simply copy. (default "%Y/%m/%d/%H/live-#:04.ts")
   - `TF` string
         Timestamp format when using timestamp type as 'segment'.
+  - `ST` bool
+        Enable timeshifting playlist.
+  - `SF` string
+        Timeshifting playlist filename.
+  - `SH` int
+        Timeshift duation in hour(s). default 3 hours.
 
 #### HTTP Options
-Using HTTP interface to provide time shifting playlist access for some situation. To use this feature, recording and re-indexing should enabled.
-  - `H`	Enable HTTP service for time shifting playlist.
+Using HTTP interface to provide playback playlist access for some situation. To use this feature, recording and re-indexing should enabled.
+  - `H`	Enable HTTP service for playback playlist.
   - `LS` string
     	HTTP listening address. support tcp:// or unix:// (default "unix://./hls-sync.sock")
   - `MX` int
     	Max length of playlist in hours. (default 6)
   - `SD` int
-    	Max time shifting days for playlist. (default 7)
+    	Max playback days for playlist. (default 7)
   - `SP` string
         Segment prefix when generating playlist.
   - `CN` int

@@ -27,6 +27,9 @@ type RecordOption struct {
 	Reindex          bool
 	Reindex_Format   string
 	Reindex_By       string // hour/minute
+	Timeshifting    bool
+	Timeshift_filename      string
+	Timeshift_duration      int
 }
 
 type SourceOption struct {
