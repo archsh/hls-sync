@@ -141,7 +141,6 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
 			}
 		}
 		if index_by == IDXT_MINUTE {
-			index = uint64(segtime.Second()/_target_duration)
 			if segtime.Year() != last_seg_timestamp.Year() ||
 				segtime.Month() != last_seg_timestamp.Month() ||
 				segtime.Day() != last_seg_timestamp.Day() ||
@@ -159,9 +158,9 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
 					}
 					index_playlist.TargetDuration = float64(_target_duration)
 				}
+				index = uint64(segtime.Second()/_target_duration)
 			}
 		}else{
-			index = uint64((segtime.Minute()*60+segtime.Second())/_target_duration)
 			if segtime.Year() != last_seg_timestamp.Year() ||
 				segtime.Month() != last_seg_timestamp.Month() ||
 				segtime.Day() != last_seg_timestamp.Day() ||
@@ -178,6 +177,7 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
 					}
 					index_playlist.TargetDuration = float64(_target_duration)
 				}
+				index = uint64((segtime.Minute()*60+segtime.Second())/_target_duration)
 			}
 		}
 		// In case of stream paused for some time.
