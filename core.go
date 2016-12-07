@@ -192,6 +192,7 @@ func (self *Synchronizer) playlistProc(segmentChan chan *SegmentMessage) {
 						mpl_updated = true
 					}else{
 						v.ProgramDateTime = t.(time.Time)
+						lastTimestamp = v.ProgramDateTime.Add(time.Duration(v.Duration)*time.Second)
 						if self.option.Sync.Enabled || self.option.Record.Enabled {
 							// Only get segments when sync or record enabled.
 							msg := &SegmentMessage{}
