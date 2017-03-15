@@ -101,10 +101,10 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
 				log.Debugf("Set Timeshift playlist winsize to : %d \n", max_timeshift_segs)
 				//timeshift_playlist
 				if e = timeshift_playlist.SetCapacity(max_timeshift_segs); nil != e {
-					log.Errorf("SetCapacity to %d failed:> %s\n", max_timeshift_segs, e)
+					log.Warnf("SetCapacity to %d failed:> %s\n", max_timeshift_segs, e)
 				}
 				if e = timeshift_playlist.SetWinSize(max_timeshift_segs); nil != e {
-					log.Errorf("SetWinSize to %d failed:> %s\n", max_timeshift_segs, e)
+					log.Warnf("SetWinSize to %d failed:> %s\n", max_timeshift_segs, e)
 				}
 			}
 		}
