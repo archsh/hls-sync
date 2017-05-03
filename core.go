@@ -248,7 +248,7 @@ func (self *Synchronizer) segmentProc(segmentChan chan *SegmentMessage, syncChan
         } else {
             var msURI string
             var msFilename string
-            if strings.HasPrefix(msg.segment.URI, "http://") || strings.HasPrefix(msg.segment.URI, "https://") {
+            if strings.HasPrefix(msg.segment.URI, "http://") || strings.HasPrefix(msg.segment.URI, "https://") || self.option.Sync.Resegment {
                 //msURI, _ = url.QueryUnescape(msg.segment.URI)
                 msURI = msg.segment.URI
                 msFilename, _ = timefmt.Strftime(msg.segment.ProgramDateTime, "%Y%m%d-%H%M%S.ts")

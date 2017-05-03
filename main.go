@@ -25,7 +25,7 @@ import (
 	"time"
 )
 
-const VERSION = "0.9.17"
+const VERSION = "0.9.18"
 
 var logging_config = LoggingConfig{Format:DEFAULT_FORMAT, Level:"DEBUG"}
 
@@ -79,6 +79,8 @@ func main() {
 	flag.StringVar(&option.Sync.Output, "SO", ".", "A base path for synced segments and play list.")
 	//Index_Name string
 	flag.StringVar(&option.Sync.Index_Name, "OI", "live.m3u8", "Index playlist filename.")
+	//Resegment bool
+	flag.BoolVar(&option.Sync.Resegment, "RS", false, "Resegment enabled.")
 	//Remove_Old bool
 	flag.BoolVar(&option.Sync.Remove_Old, "RM", false, "Remove old segments.")
 	//Clean_Folder bool

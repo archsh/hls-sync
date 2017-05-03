@@ -14,6 +14,7 @@ type SyncOption struct {
 	Enabled     bool
 	Output      string
 	Index_Name  string
+	Resegment   bool
 	Remove_Old  bool
 	Clean_Folder bool
 }
