@@ -191,6 +191,10 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
 		log.Debugln("Recording segment:> ", msg.segment, msg.seg_buffer.Len())
 		fname, e := self.generateFilename(self.option.Record.Output, self.option.Record.Segment_Rewrite, msg.segment.ProgramDateTime, index+1)
 		//log.Debugf("New filename:> %s <%s> \n", fname, e)
+		log.Infof("Recording segment:> %s | %s | %s ...\n", msg.segment.URI, msg.segment.ProgramDateTime, fname)
+		last_seg_timestamp = msg.segment.ProgramDateTime
+		last_seg_duration = time.Duration(msg.segment.Duration)
+		index++
 		e = os.MkdirAll(filepath.Dir(fname), 0777)
 		if e != nil {
 			log.Errorf("Create directory '%s' failed:> %s \n", filepath.Dir(fname), e)
@@ -214,10 +218,10 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
 			log.Debugf("Write to segment file '%s' bytes:> %d \n", fname, n)
 		}
 		out.Close()
-		last_seg_timestamp = msg.segment.ProgramDateTime
-		last_seg_duration = time.Duration(msg.segment.Duration)
+		//last_seg_timestamp = msg.segment.ProgramDateTime
+		//last_seg_duration = time.Duration(msg.segment.Duration)
 		log.Infof("Recorded segment:> %s | %s | %s \n", msg.segment.URI, msg.segment.ProgramDateTime, fname)
-		index++
+		//index++
 		if self.option.Record.Reindex {
 			seg := m3u8.MediaSegment{
 				URI: filepath.Base(fname),
