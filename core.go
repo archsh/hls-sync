@@ -251,7 +251,7 @@ func (self *Synchronizer) segmentProc(segmentChan chan *SegmentMessage, syncChan
         } else {
             var msURI string
             var msFilename string
-            if strings.HasPrefix(msg.segment.URI, "http://") || strings.HasPrefix(msg.segment.URI, "https://"){
+            if strings.HasPrefix(msg.segment.URI, "http://") || strings.HasPrefix(msg.segment.URI, "https://") {
                 //msURI, _ = url.QueryUnescape(msg.segment.URI)
                 msURI = msg.segment.URI
                 msFilename, _ = timefmt.Strftime(msg.segment.ProgramDateTime, self.sourceCrc16+"_%Y%m%d-%H%M%S.ts")
@@ -261,7 +261,7 @@ func (self *Synchronizer) segmentProc(segmentChan chan *SegmentMessage, syncChan
                 msURI = msUrl.String()
                 if self.option.Sync.Resegment {
                     msFilename, _ = timefmt.Strftime(msg.segment.ProgramDateTime, self.sourceCrc16+"_%Y%m%d-%H%M%S.ts")
-                }else{
+                } else {
                     msFilename = msg.segment.URI
                 }
                 //msFilename,_ = timefmt.Strftime(msg.segment.ProgramDateTime, "%Y%m%d-%H%M%S.ts")

@@ -13,7 +13,7 @@ func makeTable(poly uint16) *tABLe {
     for i := 0; i < 256; i++ {
         crc := uint16(i)
         for j := 0; j < 8; j++ {
-            if crc & 1 == 1 {
+            if crc&1 == 1 {
                 crc = (crc >> 1) ^ poly
             } else {
                 crc >>= 1
@@ -27,7 +27,7 @@ func makeTable(poly uint16) *tABLe {
 func update(crc uint16, tab *tABLe, p []byte) uint16 {
     crc = ^crc
     for _, v := range p {
-        crc = tab[byte(crc) ^ v] ^ (crc >> 8)
+        crc = tab[byte(crc)^v] ^ (crc >> 8)
     }
     return ^crc
 }
@@ -35,4 +35,3 @@ func update(crc uint16, tab *tABLe, p []byte) uint16 {
 func CRC16(data []byte) uint16 {
     return update(0, ibmTable, data)
 }
-
