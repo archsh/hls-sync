@@ -17,6 +17,7 @@ import (
     //"net/url"
     "github.com/archsh/timefmt"
     "os"
+    "fmt"
 )
 
 type Synchronizer struct {
@@ -24,6 +25,7 @@ type Synchronizer struct {
     client           *http.Client
     program_timezone *time.Location
     httpCache        *lru.Cache
+    sourceCrc16      string
 }
 
 type SegmentMessage struct {
@@ -42,6 +44,7 @@ func NewSynchronizer(option *Option) (s *Synchronizer, e error) {
     s = new(Synchronizer)
     s.option = option
     s.client = &http.Client{}
+    s.sourceCrc16 = fmt.Sprintf("%04x", CRC16([]byte(option.Source.Urls[0])))
     if s.program_timezone, e = time.LoadLocation(option.Program_Timezone); nil != e {
         return nil, e
     } else {
@@ -248,15 +251,19 @@ func (self *Synchronizer) segmentProc(segmentChan chan *SegmentMessage, syncChan
         } else {
             var msURI string
             var msFilename string
-            if strings.HasPrefix(msg.segment.URI, "http://") || strings.HasPrefix(msg.segment.URI, "https://") || self.option.Sync.Resegment {
+            if strings.HasPrefix(msg.segment.URI, "http://") || strings.HasPrefix(msg.segment.URI, "https://"){
                 //msURI, _ = url.QueryUnescape(msg.segment.URI)
                 msURI = msg.segment.URI
-                msFilename, _ = timefmt.Strftime(msg.segment.ProgramDateTime, "%Y%m%d-%H%M%S.ts")
+                msFilename, _ = timefmt.Strftime(msg.segment.ProgramDateTime, self.sourceCrc16+"_%Y%m%d-%H%M%S.ts")
             } else {
                 msUrl, _ := msg.response.Request.URL.Parse(msg.segment.URI)
                 //msURI, _ = url.QueryUnescape(msUrl.String())
                 msURI = msUrl.String()
-                msFilename = msg.segment.URI
+                if self.option.Sync.Resegment {
+                    msFilename, _ = timefmt.Strftime(msg.segment.ProgramDateTime, self.sourceCrc16+"_%Y%m%d-%H%M%S.ts")
+                }else{
+                    msFilename = msg.segment.URI
+                }
                 //msFilename,_ = timefmt.Strftime(msg.segment.ProgramDateTime, "%Y%m%d-%H%M%S.ts")
             }
             msg.segment.URI = msFilename
