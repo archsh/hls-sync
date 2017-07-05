@@ -45,6 +45,8 @@ You can run with several URL as failover mechanism. `hls-sync` the first one and
   - `PF` string
     To fit some stupid encoders which generated stupid time format. (default "2006-01-02T15:04:05.999999999Z07:00")
     eg: set it to "2006-01-02T15:04:05z" if you have something like: "#EXT-X-PROGRAM-DATE-TIME:2016-11-29T17:55:02z"
+  - `TF` string
+    Timestamp format when using timestamp type as 'segment'.
   - `PZ` string
     Timezone for PROGRAM-DATE-TIME. Default is 'UTC'.
 
@@ -73,8 +75,6 @@ You can run with several URL as failover mechanism. `hls-sync` the first one and
     Record output path. (default ".")
   - `SR` string
     Segment filename rewrite rule. Default empty means simply copy. (default "%Y/%m/%d/%H/live-#:04.ts")
-  - `TF` string
-    Timestamp format when using timestamp type as 'segment'.
   - `ST` bool
     Enable timeshifting playlist.
   - `SF` string
