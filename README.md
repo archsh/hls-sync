@@ -55,6 +55,8 @@ You can run with several URL as failover mechanism. `hls-sync` the first one and
     A base path for synced segments and play list. (default ".")
   - `OI` string
     Index playlist filename. (default "live.m3u8")
+  - `RS`
+    Re-segment enabled.
   - `RM`
     Remove old segments.
 
