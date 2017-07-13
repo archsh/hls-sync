@@ -222,6 +222,7 @@ func (self *Synchronizer) playlistProc(segmentChan chan *SegmentMessage) {
                 segmentChan <- msg
             }
             if mpl.Closed {
+                log.Errorln("Media Playlist closed ? This should not be happened!")
                 close(segmentChan)
                 return
             } else {
