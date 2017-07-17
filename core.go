@@ -223,8 +223,9 @@ func (self *Synchronizer) playlistProc(segmentChan chan *SegmentMessage) {
             }
             if mpl.Closed {
                 log.Errorln("Media Playlist closed ? This should not be happened!")
-                close(segmentChan)
-                return
+                //close(segmentChan)
+                //return
+                retry ++
             } else {
                 time.Sleep(time.Duration(int64((mpl.TargetDuration / 2) * 1000000000)))
             }
