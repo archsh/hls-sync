@@ -13,6 +13,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
+
 /**
 	This source file contains the entry and command line argument processing.
  */
@@ -25,9 +26,9 @@ import (
     "time"
 )
 
-const VERSION = "0.9.16"
+const VERSION = "0.9.22"
 
-var logging_config = LoggingConfig{Format:DEFAULT_FORMAT, Level:"DEBUG"}
+var logging_config = LoggingConfig{Format: DEFAULT_FORMAT, Level: "DEBUG"}
 
 func Usage() {
     guide := `
@@ -56,7 +57,7 @@ func main() {
     //Retries int
     flag.IntVar(&option.Retries, "R", 1, "Retries.")
     //User_Agent string
-    flag.StringVar(&option.User_Agent, "UA", "hls-sync v" + VERSION, "User Agent. ")
+    flag.StringVar(&option.User_Agent, "UA", "hls-sync v"+VERSION, "User Agent. ")
     //Max_Segments int
     flag.IntVar(&option.Max_Segments, "MS", 20, "Max segments in playlist.")
     //Timestamp_type string  // local|program|segment
@@ -78,6 +79,8 @@ func main() {
     flag.StringVar(&option.Sync.Output, "SO", ".", "A base path for synced segments and play list.")
     //Index_Name string
     flag.StringVar(&option.Sync.Index_Name, "OI", "live.m3u8", "Index playlist filename.")
+    //Resegment bool
+    flag.BoolVar(&option.Sync.Resegment, "RS", false, "Resegment enabled.")
     //Remove_Old bool
     flag.BoolVar(&option.Sync.Remove_Old, "RM", false, "Remove old segments.")
     //Clean_Folder bool

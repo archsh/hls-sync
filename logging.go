@@ -18,7 +18,6 @@ const DEFAULT_FORMAT = "TEXT"
 var OUTPUT_FILE *os.File
 
 type PlainFormatter struct {
-
 }
 
 func (self *PlainFormatter) Format(entry *log.Entry) ([]byte, error) {
@@ -41,7 +40,7 @@ func InitializeLogging(config *LoggingConfig, useStd bool, level string) {
         log.SetOutput(os.Stdout)
         OUTPUT_FILE = nil
     } else {
-        f, e := os.OpenFile(config.Filename, os.O_WRONLY | os.O_CREATE | os.O_APPEND, 0666)
+        f, e := os.OpenFile(config.Filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
         if nil != e {
             fmt.Errorf("Open file <%s> for logging failed<%v>!\n", config.Filename, e)
         } else {

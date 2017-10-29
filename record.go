@@ -27,13 +27,13 @@ type TimeStampType uint8
 type IndexType uint8
 
 const (
-    TST_LOCAL TimeStampType = 1 + iota
+    TST_LOCAL   TimeStampType = 1 + iota
     TST_PROGRAM
     TST_SEGMENT
 )
 
 const (
-    IDXT_HOUR IndexType = 1 + iota
+    IDXT_HOUR   IndexType = 1 + iota
     IDXT_MINUTE
 )
 
@@ -101,10 +101,10 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
                 log.Debugf("Set Timeshift playlist winsize to : %d \n", max_timeshift_segs)
                 //timeshift_playlist
                 if e = timeshift_playlist.SetCapacity(max_timeshift_segs); nil != e {
-                    log.Warnf("SetCapacity to %d failed:> %s\n", max_timeshift_segs, e)
+                    log.Errorf("SetCapacity to %d failed:> %s\n", max_timeshift_segs, e)
                 }
                 if e = timeshift_playlist.SetWinSize(max_timeshift_segs); nil != e {
-                    log.Warnf("SetWinSize to %d failed:> %s\n", max_timeshift_segs, e)
+                    log.Errorf("SetWinSize to %d failed:> %s\n", max_timeshift_segs, e)
                 }
             }
         }
@@ -128,7 +128,7 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
                                     if index_by == IDXT_MINUTE {
                                         index = uint64(last_seg_timestamp.Second() / _target_duration)
                                     } else {
-                                        index = uint64((segtime.Minute() * 60 + segtime.Second()) / _target_duration)
+                                        index = uint64((segtime.Minute()*60 + segtime.Second()) / _target_duration)
                                     }
                                 }
                             }
@@ -177,20 +177,24 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
                     }
                     index_playlist.TargetDuration = float64(_target_duration)
                 }
-                index = uint64((segtime.Minute() * 60 + segtime.Second()) / _target_duration)
+                index = uint64((segtime.Minute()*60 + segtime.Second()) / _target_duration)
             }
         }
         // In case of stream paused for some time.
-        if last_seg_duration > 0 && segtime.Sub(last_seg_timestamp) > time.Duration(last_seg_duration * 2) * time.Second {
+        if last_seg_duration > 0 && segtime.Sub(last_seg_timestamp) > time.Duration(last_seg_duration*2)*time.Second {
             if index_by == IDXT_MINUTE {
                 index = uint64(segtime.Second() / _target_duration)
             } else {
-                index = uint64((segtime.Minute() * 60 + segtime.Second()) / _target_duration)
+                index = uint64((segtime.Minute()*60 + segtime.Second()) / _target_duration)
             }
         }
         log.Debugln("Recording segment:> ", msg.segment, msg.seg_buffer.Len())
-        fname, e := self.generateFilename(self.option.Record.Output, self.option.Record.Segment_Rewrite, msg.segment.ProgramDateTime, index + 1)
+        fname, e := self.generateFilename(self.option.Record.Output, self.option.Record.Segment_Rewrite, msg.segment.ProgramDateTime, index+1)
         //log.Debugf("New filename:> %s <%s> \n", fname, e)
+        log.Infof("Recording segment:> %s | %s | %s ...\n", msg.segment.URI, msg.segment.ProgramDateTime, fname)
+        last_seg_timestamp = msg.segment.ProgramDateTime
+        last_seg_duration = time.Duration(msg.segment.Duration)
+        index++
         e = os.MkdirAll(filepath.Dir(fname), 0777)
         if e != nil {
             log.Errorf("Create directory '%s' failed:> %s \n", filepath.Dir(fname), e)
@@ -214,17 +218,17 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
             log.Debugf("Write to segment file '%s' bytes:> %d \n", fname, n)
         }
         out.Close()
-        last_seg_timestamp = msg.segment.ProgramDateTime
-        last_seg_duration = time.Duration(msg.segment.Duration)
+        //last_seg_timestamp = msg.segment.ProgramDateTime
+        //last_seg_duration = time.Duration(msg.segment.Duration)
         log.Infof("Recorded segment:> %s | %s | %s \n", msg.segment.URI, msg.segment.ProgramDateTime, fname)
-        index++
+        //index++
         if self.option.Record.Reindex {
             seg := m3u8.MediaSegment{
-                URI: filepath.Base(fname),
-                Duration: msg.segment.Duration,
+                URI:             filepath.Base(fname),
+                Duration:        msg.segment.Duration,
                 ProgramDateTime: msg.segment.ProgramDateTime,
-                Title: msg.segment.URI,
-                SeqId: index,
+                Title:           msg.segment.URI,
+                SeqId:           index,
             }
             if e := index_playlist.AppendSegment(&seg); nil == e {
                 self.saveIndexPlaylist(index_playlist)
@@ -236,11 +240,11 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
         if self.option.Record.Timeshifting {
             if relpath, e := filepath.Rel(self.option.Record.Output, fname); nil == e {
                 seg := m3u8.MediaSegment{
-                    URI: filepath.ToSlash(relpath),
-                    Duration: msg.segment.Duration,
+                    URI:             filepath.ToSlash(relpath),
+                    Duration:        msg.segment.Duration,
                     ProgramDateTime: msg.segment.ProgramDateTime,
-                    Title: msg.segment.URI,
-                    SeqId: index,
+                    Title:           msg.segment.URI,
+                    SeqId:           index,
                 }
                 if timeshift_playlist.Count() >= max_timeshift_segs {
                     if e := timeshift_playlist.Remove(); nil != e {

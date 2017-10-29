@@ -109,10 +109,10 @@ func (self *Synchronizer) ServeHTTP(response http.ResponseWriter, request *http.
     if _start_time.After(_end_time) || _start_time.Equal(_end_time) {
         _bad_request("Start timestamp can not be after end timestamp or as the same as end timestamp.!!!\n")
         return
-    } else if time.Now().Sub(_start_time) > time.Duration(self.option.Http.Days * 24) * time.Hour {
+    } else if time.Now().Sub(_start_time) > time.Duration(self.option.Http.Days*24)*time.Hour {
         _bad_request(fmt.Sprintf("Can not provide shifting before %d days!", self.option.Http.Days))
         return
-    } else if _end_time.Sub(_start_time) > time.Duration(self.option.Http.Max) * time.Hour {
+    } else if _end_time.Sub(_start_time) > time.Duration(self.option.Http.Max)*time.Hour {
         _bad_request(fmt.Sprintf("Can not provide playlist larger than %d hours!", self.option.Http.Max))
         return
     }
@@ -142,7 +142,7 @@ func (self *Synchronizer) ServeHTTP(response http.ResponseWriter, request *http.
         response.Header().Set("Content-Type", "application/vnd.apple.mpegurl")
         response.Header().Set("Content-Length", fmt.Sprintf("%d", len(pbytes)))
         response.Write(pbytes)
-        self.httpCache.Add(c_key, CacheItem{_timestamp:time.Now(), _content:pbytes})
+        self.httpCache.Add(c_key, CacheItem{_timestamp: time.Now(), _content: pbytes})
     }
 }
 

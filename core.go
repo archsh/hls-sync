@@ -14,9 +14,10 @@ import (
     log "github.com/Sirupsen/logrus"
     "sync"
     "strings"
-    "net/url"
+    //"net/url"
     "github.com/archsh/timefmt"
     "os"
+    "fmt"
 )
 
 type Synchronizer struct {
@@ -24,6 +25,7 @@ type Synchronizer struct {
     client           *http.Client
     program_timezone *time.Location
     httpCache        *lru.Cache
+    sourceCrc16      string
 }
 
 type SegmentMessage struct {
@@ -42,6 +44,7 @@ func NewSynchronizer(option *Option) (s *Synchronizer, e error) {
     s = new(Synchronizer)
     s.option = option
     s.client = &http.Client{}
+    s.sourceCrc16 = fmt.Sprintf("%04x", CRC16([]byte(option.Source.Urls[0])))
     if s.program_timezone, e = time.LoadLocation(option.Program_Timezone); nil != e {
         return nil, e
     } else {
@@ -206,7 +209,7 @@ func (self *Synchronizer) playlistProc(segmentChan chan *SegmentMessage) {
                     }
                 }
             }
-            if time.Now().Sub(last_new_segment) >= time.Duration(mpl.TargetDuration) * time.Second * time.Duration(seg_num) {
+            if time.Now().Sub(last_new_segment) >= time.Duration(mpl.TargetDuration)*time.Second*time.Duration(seg_num) {
                 log.Warningf("Long time without new segment, please check stream continuity. [ %s -> %s ] \n", last_new_segment, time.Now())
             }
             if self.option.Sync.Enabled && mpl_updated {
@@ -219,8 +222,10 @@ func (self *Synchronizer) playlistProc(segmentChan chan *SegmentMessage) {
                 segmentChan <- msg
             }
             if mpl.Closed {
-                close(segmentChan)
-                return
+                log.Errorln("Media Playlist closed ? This should not be happened!")
+                //close(segmentChan)
+                //return
+                retry ++
             } else {
                 time.Sleep(time.Duration(int64((mpl.TargetDuration / 2) * 1000000000)))
             }
@@ -249,12 +254,18 @@ func (self *Synchronizer) segmentProc(segmentChan chan *SegmentMessage, syncChan
             var msURI string
             var msFilename string
             if strings.HasPrefix(msg.segment.URI, "http://") || strings.HasPrefix(msg.segment.URI, "https://") {
-                msURI, _ = url.QueryUnescape(msg.segment.URI)
-                msFilename, _ = timefmt.Strftime(msg.segment.ProgramDateTime, "%Y%m%d-%H%M%S.ts")
+                //msURI, _ = url.QueryUnescape(msg.segment.URI)
+                msURI = msg.segment.URI
+                msFilename, _ = timefmt.Strftime(msg.segment.ProgramDateTime, self.sourceCrc16+"_%Y%m%d-%H%M%S.ts")
             } else {
                 msUrl, _ := msg.response.Request.URL.Parse(msg.segment.URI)
-                msURI, _ = url.QueryUnescape(msUrl.String())
-                msFilename = msg.segment.URI
+                //msURI, _ = url.QueryUnescape(msUrl.String())
+                msURI = msUrl.String()
+                if self.option.Sync.Resegment {
+                    msFilename, _ = timefmt.Strftime(msg.segment.ProgramDateTime, self.sourceCrc16+"_%Y%m%d-%H%M%S.ts")
+                } else {
+                    msFilename = msg.segment.URI
+                }
                 //msFilename,_ = timefmt.Strftime(msg.segment.ProgramDateTime, "%Y%m%d-%H%M%S.ts")
             }
             msg.segment.URI = msFilename

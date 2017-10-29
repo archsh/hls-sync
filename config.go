@@ -14,12 +14,13 @@ type SyncOption struct {
     Enabled      bool
     Output       string
     Index_Name   string
+    Resegment    bool
     Remove_Old   bool
     Clean_Folder bool
 }
 
 type RecordOption struct {
-                              // Record Options --------------------------------
+    // Record Options --------------------------------
     Enabled            bool
     Output             string
     Segment_Rewrite    string
@@ -46,7 +47,7 @@ type HttpOption struct {
 }
 
 type Option struct {
-                               // Global Options --------------------------------
+   // Global Options --------------------------------
     Log_File            string
     Log_Level           string
     Timeout             int
@@ -59,14 +60,15 @@ type Option struct {
     Target_Duration     int
     Program_Time_Format string
     Program_Timezone    string
-                               // Sync Option
-    Sync                SyncOption
-                               // Record Option
-    Record              RecordOption
-                               // Source URLs.
-    Source              SourceOption
-                               // Http Service
-    Http                HttpOption
+
+    // Sync Option
+    Sync SyncOption
+    // Record Option
+    Record RecordOption
+    // Source URLs.
+    Source SourceOption
+    // Http Service
+    Http HttpOption
 }
 
 func CheckConfiguration(option *Option, output io.Writer) {
@@ -124,4 +126,3 @@ func LoadConfiguration(filename string, option *Option) (e error) {
     _, e = toml.DecodeFile(filename, option)
     return e
 }
-
