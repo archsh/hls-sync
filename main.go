@@ -26,7 +26,7 @@ import (
 	"time"
 )
 
-const VERSION = "0.9.23"
+const VERSION = "0.9.24-dev"
 
 var logging_config = LoggingConfig{Format: DEFAULT_FORMAT, Level: "DEBUG"}
 
