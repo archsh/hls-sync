@@ -327,5 +327,8 @@ func (self *Synchronizer) segmentProc(segmentChan chan *SegmentMessage, syncChan
 func (self *Synchronizer) doRequest(req *http.Request) (*http.Response, error) {
 	req.Header.Set("User-Agent", self.option.User_Agent)
 	resp, err := self.client.Do(req)
+	if nil != err {
+		log.Errorf("doRequest:> Request %s failed: %s \n", req, err)
+	}
 	return resp, err
 }
