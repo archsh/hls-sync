@@ -146,7 +146,7 @@ func (self *Synchronizer) playlistProc(segmentChan chan *SegmentMessage) {
 		}
 		respBody, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			log.Errorln("Read Response body failed:> ", retry, err)
+			log.Errorln("Read Playlist Response body failed:> ", retry, err)
 			time.Sleep(time.Duration(1) * time.Second)
 			retry++
 			continue
@@ -294,7 +294,7 @@ func (self *Synchronizer) segmentProc(segmentChan chan *SegmentMessage, syncChan
 				}
 				respBody, err := ioutil.ReadAll(resp.Body)
 				if err != nil {
-					log.Errorln("Read Response body failed:> ", err)
+					log.Errorln("Read Segment Response body failed:> ", err)
 					time.Sleep(time.Duration(1) * time.Second)
 					continue
 				}
@@ -328,7 +328,7 @@ func (self *Synchronizer) doRequest(req *http.Request) (*http.Response, error) {
 	req.Header.Set("User-Agent", self.option.User_Agent)
 	resp, err := self.client.Do(req)
 	if nil != err {
-		log.Errorf("doRequest:> Request %s failed: %s \n", req, err)
+		log.Errorf("doRequest:> Request %s failed: %s \n", req.URL.Path, err)
 	}
 	return resp, err
 }
