@@ -47,7 +47,7 @@ type HttpOption struct {
 }
 
 type Option struct {
-   // Global Options --------------------------------
+    // Global Options --------------------------------
     Log_File            string
     Log_Level           string
     Timeout             int
