@@ -5,7 +5,7 @@ package main
 
 import (
     "bytes"
-    "github.com/archsh/m3u8"
+    "github.com/archsh/go.m3u8"
     log "github.com/Sirupsen/logrus"
     "os"
     "path/filepath"

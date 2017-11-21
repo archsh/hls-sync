@@ -14,7 +14,7 @@ import (
     "strconv"
     "fmt"
     "regexp"
-    "github.com/archsh/m3u8"
+    "github.com/archsh/go.m3u8"
     "net"
     "strings"
     "os"

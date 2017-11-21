@@ -13,13 +13,13 @@ import (
     "time"
 
     log "github.com/Sirupsen/logrus"
-    "github.com/archsh/m3u8"
+    "github.com/archsh/go.m3u8"
     "github.com/golang/groupcache/lru"
     //"net/url"
     "fmt"
     "os"
 
-    "github.com/archsh/timefmt"
+    "github.com/archsh/go.timefmt"
 )
 
 type Synchronizer struct {
