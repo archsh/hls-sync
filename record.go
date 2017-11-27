@@ -81,7 +81,7 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
                     if f, e := os.Open(fname); e != nil {
                         log.Errorf("Read timeshift playlist '%s' failed:> %s \n", fname, e)
                     } else {
-                        if playlist, listType, err := m3u8.DecodeFrom(f, true); nil != err {
+                        if playlist, listType, err := m3u8.DecodeFrom(f, true,"", self.program_timezone); nil != err {
                             log.Errorln("Decode previous index playlist '%s' failed:> %s\n", fname, err)
                         } else {
                             if listType == m3u8.MEDIA {
@@ -117,7 +117,7 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
                 if f, e := os.Open(fname); e != nil {
                     log.Errorf("Read previous index playlist '%s' failed:> %s\n", fname, e)
                 } else {
-                    if playlist, listType, err := m3u8.DecodeFrom(f, true); nil != err {
+                    if playlist, listType, err := m3u8.DecodeFrom(f, true,"", self.program_timezone); nil != err {
                         log.Errorf("Decode previous index playlist '%s' failed:> %s\n", fname, err)
                     } else {
                         if listType == m3u8.MEDIA {

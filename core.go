@@ -49,11 +49,11 @@ func NewSynchronizer(option *Option) (s *Synchronizer, e error) {
     s.sourceCrc16 = fmt.Sprintf("%04x", CRC16([]byte(option.Source.Urls[0])))
     if s.program_timezone, e = time.LoadLocation(option.Program_Timezone); nil != e {
         return nil, e
-    } else {
-        m3u8.ProgramTimeLocation = s.program_timezone
-    }
-    if option.Program_Time_Format != "" {
-        m3u8.ProgramTimeFormat = option.Program_Time_Format
+    //} else {
+    //    m3u8.ProgramTimeLocation = s.program_timezone
+    //}
+    //if option.Program_Time_Format != "" {
+    //    m3u8.ProgramTimeFormat = option.Program_Time_Format
     }
     return s, nil
 }
@@ -152,7 +152,7 @@ func (self *Synchronizer) playlistProc(segmentChan chan *SegmentMessage) {
             continue
         }
         buffer := bytes.NewBuffer(respBody)
-        playlist, listType, err := m3u8.Decode(*buffer, true)
+        playlist, listType, err := m3u8.Decode(*buffer, true, self.option.Program_Time_Format, self.program_timezone)
         if err != nil {
             log.Errorln("Decode playlist failed:> ", retry, err)
             time.Sleep(time.Duration(1) * time.Second)

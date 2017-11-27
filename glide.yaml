@@ -11,7 +11,7 @@ import:
 - package: github.com/Sirupsen/logrus
   version: v1.0.3
 - package: github.com/archsh/go.m3u8
-  version: v0.9.1
+  version: v0.10.1
 - package: github.com/archsh/go.timefmt
   version: v0.9
 - package: github.com/golang/groupcache

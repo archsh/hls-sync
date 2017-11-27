@@ -171,7 +171,7 @@ func (self *Synchronizer) buildPlaylist(start time.Time, end time.Time) (*m3u8.M
                 log.Errorf("Open index file '%s' failed:> %s \n", index_filename, e)
                 continue
             }
-            l, t, e := m3u8.DecodeFrom(fp, true)
+            l, t, e := m3u8.DecodeFrom(fp, true,"", self.program_timezone)
             fp.Close()
             if nil != e || t != m3u8.MEDIA {
                 log.Errorf("Decode index file '%s' failed:> %s \n", index_filename, e)
