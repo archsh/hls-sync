@@ -19,6 +19,8 @@ This source file contains the entry and command line argument processing.
 */
 package main
 
+//go:generate sh ./gen_version.sh version.go
+
 import (
     "flag"
     "fmt"
@@ -26,7 +28,7 @@ import (
     "time"
 )
 
-const VERSION = "0.9.24-dev"
+//const VERSION = "0.9.24-dev"
 
 var logging_config = LoggingConfig{Format: DEFAULT_FORMAT, Level: "DEBUG"}
 
@@ -57,7 +59,7 @@ func main() {
     //Retries int
     flag.IntVar(&option.Retries, "R", 1, "Retries.")
     //User_Agent string
-    flag.StringVar(&option.User_Agent, "UA", "hls-sync v"+VERSION, "User Agent. ")
+    flag.StringVar(&option.User_Agent, "UA", "hls-sync "+VERSION+"("+TAG+")", "User Agent. ")
     //Max_Segments int
     flag.IntVar(&option.Max_Segments, "MS", 20, "Max segments in playlist.")
     //Timestamp_type string  // local|program|segment
@@ -129,10 +131,10 @@ func main() {
     flag.Parse()
 
     if showVersion {
-        os.Stderr.Write([]byte(fmt.Sprintf("hls-sync v%v\n", VERSION)))
+        os.Stderr.Write([]byte(fmt.Sprintf("hls-sync %v (%s)\n", VERSION, TAG)))
         os.Exit(0)
     }
-    os.Stderr.Write([]byte(fmt.Sprintf("hls-sync v%v - HTTP Live Streaming (HLS) Synchronizer.\n", VERSION)))
+    os.Stderr.Write([]byte(fmt.Sprintf("hls-sync %v (%s)- HTTP Live Streaming (HLS) Synchronizer.\n", VERSION, TAG)))
     os.Stderr.Write([]byte("Copyright (C) 2015 Mingcai SHEN <archsh@gmail.com>. Licensed for use under the GNU GPL version 3.\n"))
     if config != "" {
         if e := LoadConfiguration(config, &option); e != nil {

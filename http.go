@@ -45,6 +45,9 @@ func (self *Synchronizer) HttpServe() {
     if nil != err {
         log.Errorln("Listen to socket failed:> ", err)
     }
+    if e := os.Chmod(ls[1], os.ModePerm); nil != e {
+        log.Errorln("Change socket file mode failed:> ", e)
+    }
     self.httpCache = lru.New(self.option.Http.Cache_Num)
     e := http.Serve(ln, self)
     log.Errorln("HTTP serve failed:> ", e)
