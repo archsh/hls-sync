@@ -131,7 +131,7 @@ func main() {
     flag.Parse()
 
     if showVersion {
-        os.Stderr.Write([]byte(fmt.Sprintf("hls-sync %v (%s)\n", VERSION, TAG)))
+        os.Stderr.Write([]byte(fmt.Sprintf("hls-sync %v (%s) Built @ %s \n", VERSION, TAG, BUILD_TIME)))
         os.Exit(0)
     }
     os.Stderr.Write([]byte(fmt.Sprintf("hls-sync %v (%s)- HTTP Live Streaming (HLS) Synchronizer.\n", VERSION, TAG)))
