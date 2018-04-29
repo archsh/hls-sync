@@ -173,7 +173,7 @@ func (self *Synchronizer) playlistProc(segmentChan chan *SegmentMessage) {
                     t, hit := cache.Get(v.URI)
                     if !hit {
                         if timestamp_type == TST_SEGMENT {
-                            v.ProgramDateTime, _ = timefmt.Strptime(v.URI, self.option.Timestamp_Format)
+                            v.ProgramDateTime, _ = timefmt.Strptime(v.URI, self.option.Timestamp_Format, self.option.Program_Timezone)
                         }
                         if timestamp_type == TST_LOCAL || v.ProgramDateTime.Year() < 2016 || v.ProgramDateTime.Month() == 0 || v.ProgramDateTime.Day() == 0 {
                             v.ProgramDateTime = lastTimestamp
