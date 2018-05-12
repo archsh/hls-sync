@@ -177,7 +177,7 @@ func (self *Synchronizer) playlistProc(segmentChan chan *SegmentMessage) {
                         }
                         if timestamp_type == TST_LOCAL || v.ProgramDateTime.Year() < 2016 || v.ProgramDateTime.Month() == 0 || v.ProgramDateTime.Day() == 0 {
                             v.ProgramDateTime = lastTimestamp
-                            lastTimestamp = lastTimestamp.Add(time.Duration(v.Duration) * time.Second)
+                            lastTimestamp = lastTimestamp.Add(time.Duration(v.Duration*1000) * time.Millisecond)
                         } else {
                             v.ProgramDateTime = v.ProgramDateTime.Add(timezone_shift)
                         }
