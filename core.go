@@ -47,26 +47,26 @@ func NewSynchronizer(option *Option) (s *Synchronizer, e error) {
     s.option = option
     s.client = &http.Client{Timeout: time.Duration(option.Timeout) * time.Second}
     s.sourceCrc16 = fmt.Sprintf("%04x", CRC16([]byte(option.Source.Urls[0])))
-    if s.program_timezone, e = time.LoadLocation(option.Program_Timezone); nil != e {
+    if s.program_timezone, e = time.LoadLocation(option.ProgramTimezone); nil != e {
         return nil, e
     //} else {
     //    m3u8.ProgramTimeLocation = s.program_timezone
     //}
-    //if option.Program_Time_Format != "" {
-    //    m3u8.ProgramTimeFormat = option.Program_Time_Format
+    //if option.ProgramTimeFormat != "" {
+    //    m3u8.ProgramTimeFormat = option.ProgramTimeFormat
     }
     return s, nil
 }
 
-func (self *Synchronizer) Run() {
+func (synchron *Synchronizer) Run() {
     log.Infoln("Synchronizer.Run > Starting hls-sync ...")
     syncChan := make(chan *SyncMessage, 20)
     recordChan := make(chan *RecordMessage, 20)
     segmentChan := make(chan *SegmentMessage, 20)
-    //m3u8.ProgramTimeFormat = self.option.Program_Time_Format
-    //m3u8.ProgramTimeLocation = self.program_timezone
-    if self.option.Http.Enabled {
-        if !self.option.Record.Enabled || !self.option.Record.Reindex {
+    //m3u8.ProgramTimeFormat = synchron.option.ProgramTimeFormat
+    //m3u8.ProgramTimeLocation = synchron.program_timezone
+    if synchron.option.Http.Enabled {
+        if !synchron.option.Record.Enabled || !synchron.option.Record.Reindex {
             os.Stderr.Write([]byte("\n\n!!! Record(-RC) and Re-index(-RI) should enabled to enable HTTP service !\n"))
             os.Exit(1)
         }
@@ -74,44 +74,44 @@ func (self *Synchronizer) Run() {
     var wg sync.WaitGroup
     wg.Add(1)
     go func() {
-        self.playlistProc(segmentChan)
+        synchron.playlistProc(segmentChan)
         wg.Done()
     }()
     wg.Add(1)
     go func() {
-        self.segmentProc(segmentChan, syncChan, recordChan)
+        synchron.segmentProc(segmentChan, syncChan, recordChan)
         wg.Done()
     }()
-    if self.option.Sync.Enabled {
+    if synchron.option.Sync.Enabled {
         wg.Add(1)
         go func() {
-            self.syncProc(syncChan)
+            synchron.syncProc(syncChan)
             wg.Done()
         }()
     }
-    if self.option.Record.Enabled {
+    if synchron.option.Record.Enabled {
         wg.Add(1)
         go func() {
-            self.recordProc(recordChan)
+            synchron.recordProc(recordChan)
             wg.Done()
         }()
     }
-    if self.option.Http.Enabled {
+    if synchron.option.Http.Enabled {
         wg.Add(1)
         go func() {
-            self.HttpServe()
+            synchron.HttpServe()
             wg.Done()
         }()
     }
     wg.Wait()
 }
 
-func (self *Synchronizer) playlistProc(segmentChan chan *SegmentMessage) {
-    cache := lru.New(self.option.Max_Segments)
+func (synchron *Synchronizer) playlistProc(segmentChan chan *SegmentMessage) {
+    cache := lru.New(synchron.option.MaxSegments)
     retry := 0
-    timezone_shift := time.Minute * time.Duration(self.option.Timezone_shift)
+    timezone_shift := time.Minute * time.Duration(synchron.option.TimezoneShift)
     timestamp_type := TST_LOCAL
-    switch strings.ToLower(self.option.Timestamp_type) {
+    switch strings.ToLower(synchron.option.TimestampType) {
     case "local":
         timestamp_type = TST_LOCAL
     case "segment":
@@ -122,8 +122,8 @@ func (self *Synchronizer) playlistProc(segmentChan chan *SegmentMessage) {
     src_idx := 0
     last_new_segment := time.Now()
     for {
-        if retry >= self.option.Retries {
-            if len(self.option.Source.Urls) > (src_idx + 1) {
+        if retry >= synchron.option.Retries {
+            if len(synchron.option.Source.Urls) > (src_idx + 1) {
                 src_idx += 1
                 retry = 0
             } else if src_idx > 0 {
@@ -131,13 +131,13 @@ func (self *Synchronizer) playlistProc(segmentChan chan *SegmentMessage) {
                 retry = 0
             }
         }
-        urlStr := self.option.Source.Urls[src_idx]
+        urlStr := synchron.option.Source.Urls[src_idx]
         req, err := http.NewRequest("GET", urlStr, nil)
         if err != nil {
             log.Errorln("Create Request failed:>", err)
             continue
         }
-        resp, err := self.doRequest(req)
+        resp, err := synchron.doRequest(req)
         if err != nil {
             log.Errorln("doRequest failed:> ", retry, err)
             time.Sleep(time.Duration(1) * time.Second)
@@ -152,7 +152,7 @@ func (self *Synchronizer) playlistProc(segmentChan chan *SegmentMessage) {
             continue
         }
         buffer := bytes.NewBuffer(respBody)
-        playlist, listType, err := m3u8.Decode(*buffer, true, self.option.Program_Time_Format, self.program_timezone)
+        playlist, listType, err := m3u8.Decode(*buffer, true, synchron.option.ProgramTimeFormat, synchron.program_timezone)
         if err != nil {
             log.Errorln("Decode playlist failed:> ", retry, err)
             time.Sleep(time.Duration(1) * time.Second)
@@ -165,6 +165,7 @@ func (self *Synchronizer) playlistProc(segmentChan chan *SegmentMessage) {
         seg_num := 0
         if listType == m3u8.MEDIA {
             mpl := playlist.(*m3u8.MediaPlaylist)
+            //mpl.SetWinSize()
             retry = 0
             for _, v := range mpl.Segments {
                 if v != nil {
@@ -173,7 +174,7 @@ func (self *Synchronizer) playlistProc(segmentChan chan *SegmentMessage) {
                     t, hit := cache.Get(v.URI)
                     if !hit {
                         if timestamp_type == TST_SEGMENT {
-                            v.ProgramDateTime, _ = timefmt.Strptime(v.URI, self.option.Timestamp_Format, self.option.Program_Timezone)
+                            v.ProgramDateTime, _ = timefmt.Strptime(v.URI, synchron.option.TimestampFormat, synchron.option.ProgramTimezone)
                         }
                         if timestamp_type == TST_LOCAL || v.ProgramDateTime.Year() < 2016 || v.ProgramDateTime.Month() == 0 || v.ProgramDateTime.Day() == 0 {
                             v.ProgramDateTime = lastTimestamp
@@ -184,7 +185,7 @@ func (self *Synchronizer) playlistProc(segmentChan chan *SegmentMessage) {
                         cache.Add(v.URI, v.ProgramDateTime)
                         last_new_segment = time.Now()
                         log.Infof("New segment:> %d | %s | %f | %s \n", mpl.SeqNo, v.URI, v.Duration, v.ProgramDateTime)
-                        if self.option.Sync.Enabled || self.option.Record.Enabled {
+                        if synchron.option.Sync.Enabled || synchron.option.Record.Enabled {
                             // Only get segments when sync or record enabled.
                             msg := &SegmentMessage{}
                             msg._type = SEGMEMT
@@ -198,7 +199,7 @@ func (self *Synchronizer) playlistProc(segmentChan chan *SegmentMessage) {
                     } else {
                         v.ProgramDateTime = t.(time.Time)
                         lastTimestamp = v.ProgramDateTime.Add(time.Duration(v.Duration) * time.Second)
-                        if self.option.Sync.Enabled || self.option.Record.Enabled {
+                        if synchron.option.Sync.Enabled || synchron.option.Record.Enabled {
                             // Only get segments when sync or record enabled.
                             msg := &SegmentMessage{}
                             msg._type = SEGMEMT
@@ -214,7 +215,7 @@ func (self *Synchronizer) playlistProc(segmentChan chan *SegmentMessage) {
             if time.Now().Sub(last_new_segment) >= time.Duration(mpl.TargetDuration)*time.Second*time.Duration(seg_num) {
                 log.Warningf("Long time without new segment, please check stream continuity. [ %s -> %s ] \n", last_new_segment, time.Now())
             }
-            if self.option.Sync.Enabled && mpl_updated {
+            if synchron.option.Sync.Enabled && mpl_updated {
                 msg := &SegmentMessage{}
                 msg._type = PLAYLIST
                 msg._target_duration = mpl.TargetDuration
@@ -240,7 +241,7 @@ func (self *Synchronizer) playlistProc(segmentChan chan *SegmentMessage) {
     close(segmentChan)
 }
 
-func (self *Synchronizer) segmentProc(segmentChan chan *SegmentMessage, syncChan chan *SyncMessage, recordChan chan *RecordMessage) {
+func (synchron *Synchronizer) segmentProc(segmentChan chan *SegmentMessage, syncChan chan *SyncMessage, recordChan chan *RecordMessage) {
     for msg := range segmentChan {
         if nil == msg {
             continue
@@ -258,13 +259,13 @@ func (self *Synchronizer) segmentProc(segmentChan chan *SegmentMessage, syncChan
             if strings.HasPrefix(msg.segment.URI, "http://") || strings.HasPrefix(msg.segment.URI, "https://") {
                 //msURI, _ = url.QueryUnescape(msg.segment.URI)
                 msURI = msg.segment.URI
-                msFilename, _ = timefmt.Strftime(msg.segment.ProgramDateTime, self.sourceCrc16+"_%Y%m%d-%H%M%S.ts")
+                msFilename, _ = timefmt.Strftime(msg.segment.ProgramDateTime, synchron.sourceCrc16+"_%Y%m%d-%H%M%S.ts")
             } else {
                 msUrl, _ := msg.response.Request.URL.Parse(msg.segment.URI)
                 //msURI, _ = url.QueryUnescape(msUrl.String())
                 msURI = msUrl.String()
-                if self.option.Sync.Resegment {
-                    msFilename, _ = timefmt.Strftime(msg.segment.ProgramDateTime, self.sourceCrc16+"_%Y%m%d-%H%M%S.ts")
+                if synchron.option.Sync.ReSegment {
+                    msFilename, _ = timefmt.Strftime(msg.segment.ProgramDateTime, synchron.sourceCrc16+"_%Y%m%d-%H%M%S.ts")
                 } else {
                     msFilename = msg.segment.URI
                 }
@@ -275,13 +276,13 @@ func (self *Synchronizer) segmentProc(segmentChan chan *SegmentMessage, syncChan
                 continue
             }
             log.Debugln("Downloading new segment:> ", msg.segment.URI)
-            for i := 0; i < self.option.Retries; i++ {
+            for i := 0; i < synchron.option.Retries; i++ {
                 req, err := http.NewRequest("GET", msURI, nil)
                 if err != nil {
                     log.Errorf("Create new request failed:> %s\n", err)
                     continue
                 }
-                resp, err := self.doRequest(req)
+                resp, err := synchron.doRequest(req)
                 if err != nil {
                     log.Errorf("Do request failed:> %s \n", err)
                     time.Sleep(time.Duration(1) * time.Second)
@@ -301,14 +302,14 @@ func (self *Synchronizer) segmentProc(segmentChan chan *SegmentMessage, syncChan
                 resp.Body.Close()
                 buffer := bytes.NewBuffer(respBody)
                 bufdata := buffer.Bytes()
-                if self.option.Sync.Enabled {
+                if synchron.option.Sync.Enabled {
                     le_msg := &SyncMessage{}
                     le_msg._type = SEGMEMT
                     le_msg.segment = msg.segment
                     le_msg.seg_buffer = bytes.NewBuffer(bufdata)
                     syncChan <- le_msg
                 }
-                if self.option.Record.Enabled {
+                if synchron.option.Record.Enabled {
                     le_msg := &RecordMessage{}
                     le_msg._target_duration = msg._target_duration
                     le_msg.segment = msg.segment
@@ -324,9 +325,9 @@ func (self *Synchronizer) segmentProc(segmentChan chan *SegmentMessage, syncChan
     close(syncChan)
 }
 
-func (self *Synchronizer) doRequest(req *http.Request) (*http.Response, error) {
-    req.Header.Set("User-Agent", self.option.User_Agent)
-    resp, err := self.client.Do(req)
+func (synchron *Synchronizer) doRequest(req *http.Request) (*http.Response, error) {
+    req.Header.Set("User-Agent", synchron.option.UserAgent)
+    resp, err := synchron.client.Do(req)
     if nil != err {
         log.Errorf("doRequest:> Request %s failed: %s \n", req.URL.Path, err)
     }

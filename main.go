@@ -50,62 +50,62 @@ Options:
 func main() {
     option := Option{}
     // Global Arguments ================================================================================================
-    //Log_File string
-    flag.StringVar(&option.Log_File, "L", "", "Logging output file. Default 'stdout'.")
-    //Log_Level string
-    flag.StringVar(&option.Log_Level, "V", "INFO", "Logging level. ")
+    //LogFile string
+    flag.StringVar(&option.LogFile, "L", "", "Logging output file. Default 'stdout'.")
+    //LogLevel string
+    flag.StringVar(&option.LogLevel, "V", "INFO", "Logging level. ")
     //Timeout int
     flag.IntVar(&option.Timeout, "T", 5, "Request timeout. ")
     //Retries int
     flag.IntVar(&option.Retries, "R", 1, "Retries.")
-    //User_Agent string
-    flag.StringVar(&option.User_Agent, "UA", "hls-sync "+VERSION+"("+TAG+")", "User Agent. ")
-    //Max_Segments int
-    flag.IntVar(&option.Max_Segments, "MS", 20, "Max segments in playlist.")
-    //Timestamp_type string  // local|program|segment
-    flag.StringVar(&option.Timestamp_type, "TT", "program", "Timestamp type: local, program, segment.")
-    //Timestamp_Format string
-    flag.StringVar(&option.Timestamp_Format, "TF", "", "Timestamp format when using timestamp type as 'segment'.")
-    //Timezone_shift int
-    flag.IntVar(&option.Timezone_shift, "TS", 0, "Timezone shifting by minutes when timestamp is not matching local timezone.")
-    //Target_Duration int
-    flag.IntVar(&option.Target_Duration, "TD", 0, "Target duration of source. Real target duration will be used when set to 0.")
-    //Program_Time_Format string
-    flag.StringVar(&option.Program_Time_Format, "PF", time.RFC3339Nano, "To fit some stupid encoders which generated stupid time format.")
-    //Program_Timezone string
-    flag.StringVar(&option.Program_Timezone, "PZ", "UTC", "Timezone for PROGRAM-DATE-TIME.")
+    //UserAgent string
+    flag.StringVar(&option.UserAgent, "UA", "hls-sync "+VERSION+"("+TAG+")", "User Agent. ")
+    //MaxSegments int
+    flag.IntVar(&option.MaxSegments, "MS", 20, "Max segments in playlist.")
+    //TimestampType string  // local|program|segment
+    flag.StringVar(&option.TimestampType, "TT", "program", "Timestamp type: local, program, segment.")
+    //TimestampFormat string
+    flag.StringVar(&option.TimestampFormat, "TF", "", "Timestamp format when using timestamp type as 'segment'.")
+    //TimezoneShift int
+    flag.IntVar(&option.TimezoneShift, "TS", 0, "Timezone shifting by minutes when timestamp is not matching local timezone.")
+    //TargetDuration int
+    flag.IntVar(&option.TargetDuration, "TD", 0, "Target duration of source. Real target duration will be used when set to 0.")
+    //ProgramTimeFormat string
+    flag.StringVar(&option.ProgramTimeFormat, "PF", time.RFC3339Nano, "To fit some stupid encoders which generated stupid time format.")
+    //ProgramTimezone string
+    flag.StringVar(&option.ProgramTimezone, "PZ", "UTC", "Timezone for PROGRAM-DATE-TIME.")
     // Sync Arguments ==================================================================================================
     //Enabled bool
     flag.BoolVar(&option.Sync.Enabled, "S", false, "Sync enabled.")
     //Output string
     flag.StringVar(&option.Sync.Output, "SO", ".", "A base path for synced segments and play list.")
-    //Index_Name string
-    flag.StringVar(&option.Sync.Index_Name, "OI", "live.m3u8", "Index playlist filename.")
-    //Resegment bool
-    flag.BoolVar(&option.Sync.Resegment, "RS", false, "Resegment enabled.")
-    //Remove_Old bool
-    flag.BoolVar(&option.Sync.Remove_Old, "RM", false, "Remove old segments.")
-    //Clean_Folder bool
-    flag.BoolVar(&option.Sync.Clean_Folder, "CF", false, "Clean target output folder.")
+    //IndexName string
+    flag.StringVar(&option.Sync.IndexName, "OI", "live.m3u8", "Index playlist filename.")
+    //ReSegment bool
+    flag.BoolVar(&option.Sync.ReSegment, "RS", false, "ReSegment enabled.")
+    //RemoveOld bool
+    flag.BoolVar(&option.Sync.RemoveOld, "RM", false, "Remove old segments.")
+    //CleanFolder bool
+    flag.BoolVar(&option.Sync.CleanFolder, "CF", false, "Clean target output folder.")
     // Record Arguments ================================================================================================
     //Enabled bool
     flag.BoolVar(&option.Record.Enabled, "RC", false, "Record enabled.")
     //Output string
     flag.StringVar(&option.Record.Output, "RO", ".", "Record output path.")
-    //Segment_Rewrite string
-    flag.StringVar(&option.Record.Segment_Rewrite, "SR", "%Y/%m/%d/%H/live-#:04.ts", "Segment filename rewrite rule. Default empty means simply copy.")
+    //SegmentRewrite string
+    flag.StringVar(&option.Record.SegmentRewrite, "SR", "%Y/%m/%d/%H/live-#:04.ts", "Segment filename rewrite rule. Default empty means simply copy.")
     //Reindex bool
     flag.BoolVar(&option.Record.Reindex, "RI", false, "Re-index playlist when recording.")
-    //Reindex_Format string
-    flag.StringVar(&option.Record.Reindex_Format, "RF", "%Y/%m/%d/%H/index.m3u8", "Re-index M3U8 filename format.")
-    //Reindex_By string // hour/minute
-    flag.StringVar(&option.Record.Reindex_By, "RB", "hour", "Re-index by 'hour' or 'minute'.")
+    //ReindexFormat string
+    flag.StringVar(&option.Record.ReindexFormat, "RF", "%Y/%m/%d/%H/index.m3u8", "Re-index M3U8 filename format.")
+    //ReindexBy string // hour/minute
+    flag.StringVar(&option.Record.ReindexBy, "RB", "hour", "Re-index by 'hour' or 'minute'.")
     //Timeshifting bool
     flag.BoolVar(&option.Record.Timeshifting, "ST", false, "Enable timeshifting playlist.")
-    //Timeshift_filename string
-    flag.StringVar(&option.Record.Timeshift_filename, "SF", "timeshift.m3u8", "Timeshifting playlist filename.")
-    //Timeshift_duration int
-    flag.IntVar(&option.Record.Timeshift_duration, "SH", 3, "Timeshift duation in hour(s).")
+    //TimeshiftFilename string
+    flag.StringVar(&option.Record.TimeshiftFilename, "SF", "timeshift.m3u8", "Timeshifting playlist filename.")
+    //TimeshiftDuration int
+    flag.IntVar(&option.Record.TimeshiftDuration, "SH", 3, "Timeshift duation in hour(s).")
     // HTTP Service Arguments ==========================================================================================
     // Enabled bool
     flag.BoolVar(&option.Http.Enabled, "H", false, "Enable HTTP service for playback playlist.")
@@ -115,12 +115,12 @@ func main() {
     flag.IntVar(&option.Http.Days, "SD", 7, "Max time playback days for playlist.")
     // Max int
     flag.IntVar(&option.Http.Max, "MX", 6, "Max length of playlist in hours.")
-    // Segment_Prefix string
-    flag.StringVar(&option.Http.Segment_Prefix, "SP", "", "Segment prefix when generating playlist.")
-    // Cache_Num int
-    flag.IntVar(&option.Http.Cache_Num, "CN", 128, "Num of Cache entries for avoid re-generating playlist.")
-    // Cache_Valid int
-    flag.IntVar(&option.Http.Cache_Valid, "CV", 60, "Cache valid duration in seconds.")
+    // SegmentPrefix string
+    flag.StringVar(&option.Http.SegmentPrefix, "SP", "", "Segment prefix when generating playlist.")
+    // CacheNum int
+    flag.IntVar(&option.Http.CacheNum, "CN", 128, "Num of Cache entries for avoid re-generating playlist.")
+    // CacheValid int
+    flag.IntVar(&option.Http.CacheValid, "CV", 60, "Cache valid duration in seconds.")
     // Functional Arguments ============================================================================================
     var config string
     flag.StringVar(&config, "c", "", "Configuration file instead of command line parameters. Default empty means using parameters.")
@@ -162,13 +162,13 @@ func main() {
     if option.Retries < 1 {
         option.Retries = 1
     }
-    if option.Program_Time_Format == "" {
-        option.Program_Time_Format = time.RFC3339Nano
+    if option.ProgramTimeFormat == "" {
+        option.ProgramTimeFormat = time.RFC3339Nano
     }
 
-    logging_config.Filename = option.Log_File
-    logging_config.Level = option.Log_Level
-    if option.Log_File != "" {
+    logging_config.Filename = option.LogFile
+    logging_config.Level = option.LogLevel
+    if option.LogFile != "" {
         InitializeLogging(&logging_config, false, logging_config.Level)
     } else {
         InitializeLogging(&logging_config, true, logging_config.Level)

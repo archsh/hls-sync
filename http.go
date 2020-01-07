@@ -28,10 +28,10 @@ type CacheItem struct {
     _content   []byte
 }
 
-func (self *Synchronizer) HttpServe() {
-    ls := strings.Split(self.option.Http.Listen, "://")
+func (synchron *Synchronizer) HttpServe() {
+    ls := strings.Split(synchron.option.Http.Listen, "://")
     if len(ls) != 2 {
-        log.Errorf("Invalid listen option:> '%s', should use like 'tcp://0.0.0.0:8080' or 'unix:///var/run/test.sock'.", self.option.Http.Listen)
+        log.Errorf("Invalid listen option:> '%s', should use like 'tcp://0.0.0.0:8080' or 'unix:///var/run/test.sock'.", synchron.option.Http.Listen)
         return
     }
     if ls[0] == "unix" {
@@ -48,12 +48,12 @@ func (self *Synchronizer) HttpServe() {
     if e := os.Chmod(ls[1], os.ModePerm); nil != e {
         log.Errorln("Change socket file mode failed:> ", e)
     }
-    self.httpCache = lru.New(self.option.Http.Cache_Num)
-    e := http.Serve(ln, self)
+    synchron.httpCache = lru.New(synchron.option.Http.CacheNum)
+    e := http.Serve(ln, synchron)
     log.Errorln("HTTP serve failed:> ", e)
 }
 
-func (self *Synchronizer) ServeHTTP(response http.ResponseWriter, request *http.Request) {
+func (synchron *Synchronizer) ServeHTTP(response http.ResponseWriter, request *http.Request) {
     _bad_request := func(msg string) {
         log.Debugln("Bad Request:> ", msg)
         response.WriteHeader(400)
@@ -112,19 +112,19 @@ func (self *Synchronizer) ServeHTTP(response http.ResponseWriter, request *http.
     if _start_time.After(_end_time) || _start_time.Equal(_end_time) {
         _bad_request("Start timestamp can not be after end timestamp or as the same as end timestamp.!!!\n")
         return
-    } else if time.Now().Sub(_start_time) > time.Duration(self.option.Http.Days*24)*time.Hour {
-        _bad_request(fmt.Sprintf("Can not provide shifting before %d days!", self.option.Http.Days))
+    } else if time.Now().Sub(_start_time) > time.Duration(synchron.option.Http.Days*24)*time.Hour {
+        _bad_request(fmt.Sprintf("Can not provide shifting before %d days!", synchron.option.Http.Days))
         return
-    } else if _end_time.Sub(_start_time) > time.Duration(self.option.Http.Max)*time.Hour {
-        _bad_request(fmt.Sprintf("Can not provide playlist larger than %d hours!", self.option.Http.Max))
+    } else if _end_time.Sub(_start_time) > time.Duration(synchron.option.Http.Max)*time.Hour {
+        _bad_request(fmt.Sprintf("Can not provide playlist larger than %d hours!", synchron.option.Http.Max))
         return
     }
     log.Infof("Request Playlist %s -> %s \n", _start_time, _end_time)
     c_key := fmt.Sprintf("%d-%d", _start_time.Unix(), _end_time.Unix())
-    if v, ok := self.httpCache.Get(c_key); ok {
+    if v, ok := synchron.httpCache.Get(c_key); ok {
         log.Debugln("Cached: ", c_key)
         if item, yes := v.(CacheItem); yes {
-            if item._timestamp.Add(time.Duration(self.option.Http.Cache_Valid) * time.Second).After(time.Now()) {
+            if item._timestamp.Add(time.Duration(synchron.option.Http.CacheValid) * time.Second).After(time.Now()) {
                 response.Header().Set("Content-Type", "application/vnd.apple.mpegurl")
                 response.Header().Set("Content-Length", fmt.Sprintf("%d", len(item._content)))
                 response.Write(item._content)
@@ -132,7 +132,7 @@ func (self *Synchronizer) ServeHTTP(response http.ResponseWriter, request *http.
             }
         }
     }
-    if mpl, e := self.buildPlaylist(_start_time, _end_time); e != nil {
+    if mpl, e := synchron.buildPlaylist(_start_time, _end_time); e != nil {
         log.Errorf("Build playlist failed:> %s \n", e)
         response.WriteHeader(500)
         response.Header().Set("Content-Type", "text/plain")
@@ -145,13 +145,13 @@ func (self *Synchronizer) ServeHTTP(response http.ResponseWriter, request *http.
         response.Header().Set("Content-Type", "application/vnd.apple.mpegurl")
         response.Header().Set("Content-Length", fmt.Sprintf("%d", len(pbytes)))
         response.Write(pbytes)
-        self.httpCache.Add(c_key, CacheItem{_timestamp: time.Now(), _content: pbytes})
+        synchron.httpCache.Add(c_key, CacheItem{_timestamp: time.Now(), _content: pbytes})
     }
 }
 
-func (self *Synchronizer) buildPlaylist(start time.Time, end time.Time) (*m3u8.MediaPlaylist, error) {
+func (synchron *Synchronizer) buildPlaylist(start time.Time, end time.Time) (*m3u8.MediaPlaylist, error) {
     var duration time.Duration
-    if strings.ToLower(self.option.Record.Reindex_By) == "minute" {
+    if strings.ToLower(synchron.option.Record.ReindexBy) == "minute" {
         duration = time.Minute
     } else {
         duration = time.Hour
@@ -163,18 +163,18 @@ func (self *Synchronizer) buildPlaylist(start time.Time, end time.Time) (*m3u8.M
     }
     for t := start.Truncate(duration); t.Before(end); t = t.Add(duration) {
         log.Debugln("T:>", t)
-        if index_filename, e := self.generateFilename(self.option.Record.Output, self.option.Record.Reindex_Format, t, 0); nil != e {
+        if index_filename, e := synchron.generateFilename(synchron.option.Record.Output, synchron.option.Record.ReindexFormat, t, 0); nil != e {
             log.Errorf("Generate filename failed:> %s \n", e)
             continue
         } else {
-            rl_idx, _ := self.generateFilename(self.option.Http.Segment_Prefix, self.option.Record.Reindex_Format, t, 0)
+            rl_idx, _ := synchron.generateFilename(synchron.option.Http.SegmentPrefix, synchron.option.Record.ReindexFormat, t, 0)
             rl_path := filepath.Dir(rl_idx)
             fp, e := os.Open(index_filename)
             if nil != e {
                 log.Errorf("Open index file '%s' failed:> %s \n", index_filename, e)
                 continue
             }
-            l, t, e := m3u8.DecodeFrom(fp, true,"", self.program_timezone)
+            l, t, e := m3u8.DecodeFrom(fp, true,"", synchron.program_timezone)
             fp.Close()
             if nil != e || t != m3u8.MEDIA {
                 log.Errorf("Decode index file '%s' failed:> %s \n", index_filename, e)

@@ -37,9 +37,9 @@ const (
     IDXT_MINUTE
 )
 
-func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
+func (synchron *Synchronizer) recordProc(msgChan chan *RecordMessage) {
     index_by := IDXT_HOUR
-    switch strings.ToLower(self.option.Record.Reindex_By) {
+    switch strings.ToLower(synchron.option.Record.ReindexBy) {
     case "hour":
         index_by = IDXT_HOUR
     case "minute":
@@ -61,16 +61,16 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
         }
         segtime := msg.segment.ProgramDateTime
         if _target_duration == 0 {
-            if self.option.Target_Duration < 1 {
+            if synchron.option.TargetDuration < 1 {
                 _target_duration = int(msg._target_duration)
             } else {
-                _target_duration = self.option.Target_Duration
+                _target_duration = synchron.option.TargetDuration
             }
         }
-        if self.option.Record.Timeshifting {
+        if synchron.option.Record.Timeshifting {
             if timeshift_playlist == nil {
-                fname := filepath.Join(self.option.Record.Output, self.option.Record.Timeshift_filename)
-                max_timeshift_segs = uint((time.Duration(self.option.Record.Timeshift_duration) * time.Hour) / (time.Second * time.Duration(_target_duration)))
+                fname := filepath.Join(synchron.option.Record.Output, synchron.option.Record.TimeshiftFilename)
+                max_timeshift_segs = uint((time.Duration(synchron.option.Record.TimeshiftDuration) * time.Hour) / (time.Second * time.Duration(_target_duration)))
                 if ! exists(fname) {
                     timeshift_playlist, e = m3u8.NewMediaPlaylist(max_timeshift_segs, max_timeshift_segs)
                     if e != nil {
@@ -81,7 +81,7 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
                     if f, e := os.Open(fname); e != nil {
                         log.Errorf("Read timeshift playlist '%s' failed:> %s \n", fname, e)
                     } else {
-                        if playlist, listType, err := m3u8.DecodeFrom(f, true,"", self.program_timezone); nil != err {
+                        if playlist, listType, err := m3u8.DecodeFrom(f, true,"", synchron.program_timezone); nil != err {
                             log.Errorln("Decode previous index playlist '%s' failed:> %s\n", fname, err)
                         } else {
                             if listType == m3u8.MEDIA {
@@ -109,7 +109,7 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
             }
         }
         if nil == index_playlist {
-            fname, e := self.generateFilename(self.option.Record.Output, self.option.Record.Reindex_Format, segtime, 0)
+            fname, e := synchron.generateFilename(synchron.option.Record.Output, synchron.option.Record.ReindexFormat, segtime, 0)
             if nil != e {
                 log.Errorf("Generate index playlist '%s' failed:> %s\n", fname, e)
             } else if fname != "" && exists(fname) {
@@ -117,7 +117,7 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
                 if f, e := os.Open(fname); e != nil {
                     log.Errorf("Read previous index playlist '%s' failed:> %s\n", fname, e)
                 } else {
-                    if playlist, listType, err := m3u8.DecodeFrom(f, true,"", self.program_timezone); nil != err {
+                    if playlist, listType, err := m3u8.DecodeFrom(f, true,"", synchron.program_timezone); nil != err {
                         log.Errorf("Decode previous index playlist '%s' failed:> %s\n", fname, err)
                     } else {
                         if listType == m3u8.MEDIA {
@@ -146,10 +146,10 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
                 segtime.Day() != last_seg_timestamp.Day() ||
                 segtime.Hour() != last_seg_timestamp.Hour() ||
                 segtime.Minute() != last_seg_timestamp.Minute() {
-                if self.option.Record.Reindex {
+                if synchron.option.Record.Reindex {
                     if index_playlist != nil {
                         index_playlist.Close()
-                        self.saveIndexPlaylist(index_playlist)
+                        synchron.saveIndexPlaylist(index_playlist)
                     }
                     index_playlist, e = m3u8.NewMediaPlaylist(128, 128)
                     if nil != e {
@@ -165,10 +165,10 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
                 segtime.Month() != last_seg_timestamp.Month() ||
                 segtime.Day() != last_seg_timestamp.Day() ||
                 segtime.Hour() != last_seg_timestamp.Hour() {
-                if self.option.Record.Reindex {
+                if synchron.option.Record.Reindex {
                     if index_playlist != nil {
                         index_playlist.Close()
-                        self.saveIndexPlaylist(index_playlist)
+                        synchron.saveIndexPlaylist(index_playlist)
                     }
                     index_playlist, e = m3u8.NewMediaPlaylist(2048, 2048)
                     if nil != e {
@@ -189,7 +189,7 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
             }
         }
         log.Debugln("Recording segment:> ", msg.segment, msg.seg_buffer.Len())
-        fname, e := self.generateFilename(self.option.Record.Output, self.option.Record.Segment_Rewrite, msg.segment.ProgramDateTime, index+1)
+        fname, e := synchron.generateFilename(synchron.option.Record.Output, synchron.option.Record.SegmentRewrite, msg.segment.ProgramDateTime, index+1)
         //log.Debugf("New filename:> %s <%s> \n", fname, e)
         log.Infof("Recording segment:> %s | %s | %s ...\n", msg.segment.URI, msg.segment.ProgramDateTime, fname)
         last_seg_timestamp = msg.segment.ProgramDateTime
@@ -222,7 +222,7 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
         //last_seg_duration = time.Duration(msg.segment.Duration)
         log.Infof("Recorded segment:> %s | %s | %s \n", msg.segment.URI, msg.segment.ProgramDateTime, fname)
         //index++
-        if self.option.Record.Reindex {
+        if synchron.option.Record.Reindex {
             seg := m3u8.MediaSegment{
                 URI:             filepath.Base(fname),
                 Duration:        msg.segment.Duration,
@@ -231,14 +231,14 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
                 SeqId:           index,
             }
             if e := index_playlist.AppendSegment(&seg); nil == e {
-                self.saveIndexPlaylist(index_playlist)
+                synchron.saveIndexPlaylist(index_playlist)
             } else {
                 log.Errorf("Append to index playlist failed:> %s \n", e)
             }
 
         }
-        if self.option.Record.Timeshifting {
-            if relpath, e := filepath.Rel(self.option.Record.Output, fname); nil == e {
+        if synchron.option.Record.Timeshifting {
+            if relpath, e := filepath.Rel(synchron.option.Record.Output, fname); nil == e {
                 seg := m3u8.MediaSegment{
                     URI:             filepath.ToSlash(relpath),
                     Duration:        msg.segment.Duration,
@@ -252,7 +252,7 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
                     }
                 }
                 if e := timeshift_playlist.AppendSegment(&seg); nil == e {
-                    self.saveTimeshiftPlaylist(timeshift_playlist)
+                    synchron.saveTimeshiftPlaylist(timeshift_playlist)
                 } else {
                     log.Errorf("Append to timeshift playlist failed:> %s \n", e)
                 }
@@ -264,12 +264,12 @@ func (self *Synchronizer) recordProc(msgChan chan *RecordMessage) {
     }
 }
 
-func (self *Synchronizer) saveTimeshiftPlaylist(playlist *m3u8.MediaPlaylist) {
+func (synchron *Synchronizer) saveTimeshiftPlaylist(playlist *m3u8.MediaPlaylist) {
     if nil == playlist || nil == playlist.Segments[0] {
         log.Errorln("Empty playlist !")
         return
     }
-    fname := filepath.Join(self.option.Record.Output, self.option.Record.Timeshift_filename)
+    fname := filepath.Join(synchron.option.Record.Output, synchron.option.Record.TimeshiftFilename)
     log.Debugf("Updating timeshift playlist file:> %s : %d \n", fname, playlist.Count())
     e := os.MkdirAll(filepath.Dir(fname), 0777)
     if e != nil {
@@ -294,12 +294,12 @@ func (self *Synchronizer) saveTimeshiftPlaylist(playlist *m3u8.MediaPlaylist) {
     log.Infof("Updated timeshift playlist:> %s : %d \n", fname, playlist.Count())
 }
 
-func (self *Synchronizer) saveIndexPlaylist(playlist *m3u8.MediaPlaylist) {
+func (synchron *Synchronizer) saveIndexPlaylist(playlist *m3u8.MediaPlaylist) {
     if nil == playlist || nil == playlist.Segments[0] {
         log.Errorln("Empty playlist !")
         return
     }
-    fname, e := self.generateFilename(self.option.Record.Output, self.option.Record.Reindex_Format, playlist.Segments[0].ProgramDateTime, 0)
+    fname, e := synchron.generateFilename(synchron.option.Record.Output, synchron.option.Record.ReindexFormat, playlist.Segments[0].ProgramDateTime, 0)
     log.Debugf("Re-index into file:> %s <%s> \n", fname, e)
     e = os.MkdirAll(filepath.Dir(fname), 0777)
     if e != nil {
@@ -323,7 +323,7 @@ func (self *Synchronizer) saveIndexPlaylist(playlist *m3u8.MediaPlaylist) {
     log.Infof("Updated index playlist:> %s \n", fname)
 }
 
-func (self *Synchronizer) generateFilename(output string, format string, tm time.Time, idx uint64) (string, error) {
+func (synchron *Synchronizer) generateFilename(output string, format string, tm time.Time, idx uint64) (string, error) {
     s, e := timefmt.Strftime(tm, format)
     if e != nil {
         return "", nil
